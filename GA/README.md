@@ -9,12 +9,14 @@ This work is based on [Generative Agents: Interactive Simulacra of Human Behavio
 ## Good To Know
 I am learning the codebase as I go, I didn't want to use the overly expensive OpenAI apis. I waited a few months that the original repo would update for other AI labs, it didn't happen so I did on my own.
 
-### changes
+# Fork Changes
 * standardized the api keys
 * added [gemini](https://ai.google.dev) support
 * added some graceful shutdown for when [rate limit](https://ai.google.dev/gemini-api/docs/rate-limits) is hit
 * the code was failing when the reasoning folder already existed, fixed
 * improved some error messages to make sense when things don't work out
+
+all those changes are in `gemini_integration` branch until I make sure that all is running as intended. The `main` branch is still the original fork so you can see the difference and rescue yourself (and me :-) if something is off.
 
 ## Preparation
 To set up your environment, you will need to modify `utils.py` file that contains your LLM API key and download the necessary packages.
