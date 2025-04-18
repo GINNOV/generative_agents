@@ -16,7 +16,6 @@ I am learning the codebase as I go, I didn't want to use the overly expensive Op
 * the code was failing when the reasoning folder already existed, fixed
 * improved some error messages to make sense when things don't work out
 
-all those changes are in `gemini_integration` branch until I make sure that all is running as intended. The `main` branch is still the original fork so you can see the difference and rescue yourself (and me :-) if something is off.
 
 ## Preparation
 To set up your environment, you will need to modify `utils.py` file that contains your LLM API key and download the necessary packages.
