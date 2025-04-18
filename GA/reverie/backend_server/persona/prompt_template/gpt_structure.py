@@ -195,9 +195,9 @@ def llm_request(prompt,
                 error_message = f"LLM API ERROR ({key_type}, Model: {effective_model}): {type(e).__name__} - {e}"
                 print(error_message)
                 metrics.fail_record(error_message) # Record the failure
-                message = f"ERROR: API Call Failed ({type(e).__name__})"
-                total_token = 0
-                break # Exit loop on other errors
+                #message = f"ERROR: API Call Failed ({type(e).__name__})"
+                print("Stopping the simulation due to unrecoverable API error.")
+                sys.exit(1)
 
         # --- End Gemini Retry Loop ---
 
@@ -252,8 +252,10 @@ def llm_request(prompt,
             error_message = f"LLM API ERROR ({key_type}, Model: {effective_model}): {type(e).__name__} - {e}"
             print(error_message)
             metrics.fail_record(error_message)
-            message = f"ERROR: API Call Failed ({type(e).__name__})"
-            total_token = 0
+            #message = f"ERROR: API Call Failed ({type(e).__name__})"
+            #total_token = 0
+            print("Stopping the simulation due to unrecoverable API error.")
+            sys.exit(1)
 
     # --- Metrics Recording ---
     function_name = get_caller_function_names()
@@ -505,8 +507,10 @@ def gpt_request_all_version(prompt, gpt_parameter):
                 print(error_message)
                 metrics.fail_record(error_message)
                 response_text = "ERROR: API Call Failed"
-                total_token = 0
-                break # Exit loop on other errors
+                # total_token = 0
+                # break 
+                print("Stopping the simulation due to unrecoverable API error.")
+                sys.exit(1)
         # --- End Gemini Retry Loop ---
 
     # --- AZURE / OPENAI (Legacy Completion Endpoint) ---
@@ -724,8 +728,10 @@ def get_embedding(text, model="default"):
                 print(error_message)
                 metrics.fail_record(error_message)
                 embedding_vector = None # Return None on error
-                total_token = 0
-                break # Exit loop on other errors
+                # total_token = 0
+                # break
+                print("Stopping the simulation due to unrecoverable API error.")
+                sys.exit(1)
         # --- End Gemini Retry Loop ---
 
     # --- AZURE / OPENAI / LLAMA ---
