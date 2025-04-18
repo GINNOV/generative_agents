@@ -1,7 +1,7 @@
 # AGA in Generative Agents
 
 <p align="center" width="100%">
-<img src="../doc/pic/aga_in_ga.gif" width="50%" height="50%">
+<img src="../doc/pic/aga_in_ga.gif" width="30%" height="30%">
 </p>
 
 This work is based on [Generative Agents: Interactive Simulacra of Human Behavior](https://github.com/joonspk-research/generative_agents). Generative Agents provides a platform that simulates a virtual town with both front-end and back-end capabilities. For convenience and to reduce experiment time, I [forked](https://github.com/AffordableGenerativeAgents/Affordable-Generative-Agents?tab=readme-ov-file) a version that operates purely on the back-end. For more detailed information about the platform, please refer to the original repo [Generative Agents](https://github.com/joonspk-research/generative_agents).
