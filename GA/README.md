@@ -4,86 +4,52 @@
 <img src="../doc/pic/aga_in_ga.gif" width="50%" height="50%">
 </p>
 
-This work is based on [Generative Agents: Interactive Simulacra of Human Behavior](https://github.com/joonspk-research/generative_agents). Generative Agents provides a platform that simulates a virtual town with both front-end and back-end capabilities. For convenience and to reduce experiment time, we offer a version that operates purely on the back-end. For more detailed information about the platform, please refer to [Generative Agents](https://github.com/joonspk-research/generative_agents).
+This work is based on [Generative Agents: Interactive Simulacra of Human Behavior](https://github.com/joonspk-research/generative_agents). Generative Agents provides a platform that simulates a virtual town with both front-end and back-end capabilities. For convenience and to reduce experiment time, I [forked](https://github.com/AffordableGenerativeAgents/Affordable-Generative-Agents?tab=readme-ov-file) a version that operates purely on the back-end. For more detailed information about the platform, please refer to the original repo [Generative Agents](https://github.com/joonspk-research/generative_agents).
+
+## Good To Know
+I am learning the codebase as I go, I didn't want to use the overly expensive OpenAI apis. I waited a few months that the original repo would update for other AI labs, it didn't happen so I did on my own.
+
+### changes
+* standardized the api keys
+* added [gemini](https://ai.google.dev) support
+* added some graceful shutdown for when [rate limit](https://ai.google.dev/gemini-api/docs/rate-limits) is hit
+* the code was failing when the reasoning folder already existed, fixed
+* improved some error messages to make sense when things don't work out
 
 ## Preparation
-To set up your environment, you will need to generate a `utils.py` file that contains your LLM API key and download the necessary packages.
+To set up your environment, you will need to modify `utils.py` file that contains your LLM API key and download the necessary packages.
 
-### Step 1. Generate Utils File
-In the `reverie/backend_server` folder (where `reverie.py` is located), create a new file titled `utils.py` and copy and paste the content below into the file, we offer Azure API, OpenAI API and llama version (you should specify the `key_type`):
-```python
-import os
+### Step 1. Update Utils File
+set the LLM that you are going to use in the `utils.py` file. There are two of them, one in backend folder and another in the simulation folder.
 
-key_type = 'azure'
-assert key_type in ['openai', 'azure', 'llama'], "ERROR: wrong key type, the key type should select from ['openai', " \
-                                                 "'azure', 'llama']. "
-# openai
-openai_api_key = "<Your OpenAI API>"
-key_owner = "<Name>"
-
-# azure
-if key_type == 'azure':
-    openai_api_key = "<Your Azure API Key>"
-    openai_api_base = "<Your Azure API Base>"  # your endpoint should look like the following https://YOUR_RESOURCE_NAME.openai.azure.com/
-    openai_api_type = 'azure'
-    openai_api_version = '2023-05-15'  # this may change in the future
-    # for completion
-    openai_completion_api_key = "<Your Azure API Key>"
-    openai_completion_api_base = "<Your Azure API Base>"
-
-# llama
-if key_type == 'llama':
-    openai_api_key = "none"
-    openai_api_base = "<llama URL>"  # The address of the llama model you deployed.
-    openai_api_type = 'openai'
-    openai_api_version = ''
-
-maze_assets_loc = "../../environment/frontend_server/static_dirs/assets"
-env_matrix = f"{maze_assets_loc}/the_ville/matrix"
-env_visuals = f"{maze_assets_loc}/the_ville/visuals"
-
-fs_storage = "../../environment/frontend_server/storage"
-fs_temp_storage = "../../environment/frontend_server/temp_storage"
-
-collision_block_id = "32125"
-
-# Verbose
-debug = True
-# sim fold
-sim_fold = None
-def set_fold(path):
-    global sim_fold
-    sim_fold = path
-# Pool
-use_embedding_pool = True
-embedding_pool_path = os.path.join(fs_storage, "public", "embedding_pool.json")
-use_policy_pool = True
-policy_pool_path = os.path.join(fs_storage, "public", "policy_pool")
-use_sub_task_pool = True
-sub_task_pool_path = os.path.join(fs_storage, "public", "sub_task_pool")
-# Record
-record_tree_flag = True
-# switch
-use_policy = True
-use_relationship = True
-```
+**For gemini:**
+In your shell profile (oh however, you like otherwise), define `GOOGLE_API_KEY` like this `export GOOGLE_API_KEY="your-key-here"`
 
 ### Step 2. Install requirements.txt
 Install everything listed in the `requirements.txt` file.
 
-## Running a Simulation
-We offer the back-end only version in `reverie_offline.py`, you should run in the following format:
-```bash
-python reverie_offline.py -o <the forked simulation> -t <the new simulation> -s <the total run step>
+```pip install -r requirements.txt```
 
-# Here is an example
+## Running a Simulation
+The back-end only version is in `reverie_offline.py`, you should run in the following format:
+
+`
+python reverie_offline.py -o <the forked simulation> -t <the new simulation> -s <the total run step>`
+
+**like this**:
+```bash
 python reverie_offline.py -o base_the_ville_isabella_maria_klaus -t aga_3_person -s 17280
 ```
+start with a very small number (like 300) so that you can make sure that everything works.
 
-## Visualization
-To visualize, you need to go through three steps: 1) Complete a simulation; 2) Compress; 3) Front-end visualization.
+--
+# Visualization
+To visualize, you need to go through three steps: 
+1. Complete a simulation
+2. Compress the simulation data
+3. Use the Front-end visualization.
 
-### Step 1. Complete a simulation
+## Step 1. Complete a simulation
 After finish the [Running a Simulation](#running-a-simulation), a project fold with `<the new simulation>` will be created in `./environment/frontend_server_storage`
 
 ### Step 2. Compress
@@ -102,7 +68,7 @@ Run the following command:
 python compress_sim_storage.py
 ```
 
-### Step 3. Front-end visualization
+## Step 3. Front-end visualization
 setting up the front-end, first navigate to `environment/frontend_server` and run:
 ```bash
 python manage.py runserver
@@ -136,4 +102,6 @@ All relevant records for the experiments are generated in the `<project fold>/me
 
 During experiments, generated policies and embedding features are saved in `./environment/fribtebd_server/storage/public`. The number of policies will affect the token consumption of the experiment.
 
-The implementation of **MindWandering** is in the branch of `mindwandering`
+The implementation of **MindWandering** is in the branch of `mindwandering` of the forked repo.
+
+note: I don't know what I am doing. I enjoy this type of project and I decided to face palm myself with the unknown, learn something and share what I figure out. If you have advices, share away. Good luck.
