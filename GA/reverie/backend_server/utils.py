@@ -11,8 +11,6 @@ VALID_KEY_TYPES = ['openai', 'azure', 'llama', 'gemini']
 assert key_type in VALID_KEY_TYPES, f"ERROR: wrong key type '{key_type}', the key type should select from {VALID_KEY_TYPES}. "
 
 # --- DEFINE PLACEHOLDERS ---
-# These are fallback values if environment variables are not set.
-# It's strongly recommended to use environment variables or a .env file.
 openai_api_key_val = "<Your OpenAI API Key>"
 openai_key_owner = "<Name>" # Optional: For reference
 azure_api_key_val = "<Your Azure API Key>"
@@ -20,7 +18,7 @@ azure_api_base_val = "<Your Azure API Base (e.g., https://YOUR_RESOURCE_NAME.ope
 azure_chat_deployment_name_val = "gpt-35-turbo" # Default Azure chat deployment name
 azure_completion_deployment_name_val = "text-davinci-003" # Default Azure completion deployment name
 llama_api_base_val = "<Llama API URL (e.g., http://localhost:8000/v1)>" # Ensure OpenAI compatible endpoint /v1
-llama_chat_model_name_val = "your-llama-chat-model-name" # Specify your default Llama chat model
+llama_chat_model_name_val = "your-llama-chat-model-name"
 google_api_key_val = "<Your Google API Key (from Google AI Studio or Cloud)>"
 
 # --- DEFAULT MODEL NAMES ---
@@ -30,14 +28,14 @@ google_api_key_val = "<Your Google API Key (from Google AI Studio or Cloud)>"
 # Chat Models (Used by llm_request, ChatGPT_request, etc.)
 DEFAULT_OPENAI_CHAT_MODEL = "gpt-3.5-turbo"
 DEFAULT_AZURE_CHAT_MODEL = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME", azure_chat_deployment_name_val)
-DEFAULT_LLAMA_CHAT_MODEL = llama_chat_model_name_val # Specify your Llama model if used
-DEFAULT_GEMINI_CHAT_MODEL = "gemini-1.5-flash-latest" # Recommended: Use latest flash or pro
+DEFAULT_LLAMA_CHAT_MODEL = llama_chat_model_name_val 
+DEFAULT_GEMINI_CHAT_MODEL = "gemini-1.5-flash-latest"
 
 # Completion Models (Used by legacy functions like run_gpt_prompt_wake_up_hour)
 DEFAULT_OPENAI_COMPLETION_MODEL = "gpt-3.5-turbo-instruct" # Or "text-davinci-003"
 DEFAULT_AZURE_COMPLETION_MODEL = os.getenv("AZURE_OPENAI_COMPLETION_DEPLOYMENT_NAME", azure_completion_deployment_name_val)
 # Gemini doesn't have a direct completion equivalent, map to a chat model
-DEFAULT_GEMINI_COMPLETION_MODEL = "gemini-1.5-flash-latest" # Use flash or pro for mapped completion tasks
+DEFAULT_GEMINI_COMPLETION_MODEL = "gemini-1.5-flash-latest"
 
 # Embedding Models
 DEFAULT_OPENAI_EMBEDDING_MODEL = "text-embedding-ada-002"
