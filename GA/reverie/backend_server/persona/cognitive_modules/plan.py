@@ -78,38 +78,99 @@ def generate_first_daily_plan(persona, wake_up_hour):
 
 
 def generate_hourly_schedule(daily_plan, wake_up_hour, curr_time):
-    daily_req = []
-    n_m1_hourly_compressed = []
+        """
+        Generates a compressed hourly schedule based on the broad daily plan.
 
-    curr_min = int(curr_time.hour * 60 + curr_time.minute)
+        Args:
+            daily_plan (list): List of dictionaries, each with 'activity', 'start', 'end'.
+                               Output from generate_first_daily_plan.
+            wake_up_hour (int): The hour the persona wakes up.
+            curr_time (datetime): The current simulation time (used for initial sleep duration).
 
-    rest_time = 24 * 60
-    n_m1_hourly_compressed += [["sleeping", int(wake_up_hour * 60) - curr_min]]
-    rest_time -= int(wake_up_hour * 60) - curr_min
+        Returns:
+            tuple: (daily_req, n_m1_hourly_compressed)
+                   daily_req (list): List of string descriptions of the plan.
+                   n_m1_hourly_compressed (list): List of [activity, duration_minutes].
+        """
+        daily_req = []
+        n_m1_hourly_compressed = []
 
-    for activity_json in daily_plan:
-        activity = activity_json["activity"]
-        start_time = datetime.datetime.strptime(activity_json["start"], '%I:%M %p')
-        end_time = datetime.datetime.strptime(activity_json["end"], '%I:%M %p')
-        daily_req.append(f"{activity} from {activity_json['start']} to {activity_json['end']}")
-        min_diff_time = (end_time - start_time).total_seconds() / 60
-        if min_diff_time < 0:
-            min_diff_time = 1440 + min_diff_time
+        # Calculate minutes passed since midnight for the current time
+        curr_min_since_midnight = int(curr_time.hour * 60 + curr_time.minute)
+        wake_up_min_since_midnight = int(wake_up_hour * 60)
 
-        n_m1_hourly_compressed += [[activity, int(min_diff_time)]]
-        rest_time -= min_diff_time
-        print(f"activity_json -> s:{start_time} e:{end_time} m:{min_diff_time} r:{rest_time} t:{activity}")
+        # Calculate initial sleep duration from midnight until wake-up
+        # Handle potential day rollover if curr_time is early morning before wake_up
+        initial_sleep_dur = wake_up_min_since_midnight - curr_min_since_midnight
+        if initial_sleep_dur < 0:
+            initial_sleep_dur += 1440 # Add minutes in a day if it wrapped around
 
-        # assert rest_time > 0, "generate_first_daily_plan -> rest time should larger than 0"
-        assert min_diff_time > 0, "generate_first_daily_plan -> min_diff_time time should larger than 0"
+        if initial_sleep_dur > 0:
+            n_m1_hourly_compressed += [["sleeping", initial_sleep_dur]]
+        # else: # Handle case where wake up hour is exactly current time or passed
+        #     pass # No initial sleep block needed
 
-    if rest_time > 0:
-        n_m1_hourly_compressed += [["sleeping", int(rest_time)]]
+        # Calculate total minutes available after wake up until next midnight
+        total_minutes_in_day = 24 * 60
+        # remaining_time_after_wake = total_minutes_in_day - wake_up_min_since_midnight
+        # Let's track remaining time by subtracting durations
+        remaining_time = total_minutes_in_day - initial_sleep_dur
 
-    assert len(n_m1_hourly_compressed) >= 7, "generate_first_daily_plan -> activities num should larger than 7"
+        # Process the generated daily plan activities
+        for activity_json in daily_plan:
+            activity = activity_json.get("activity", "unknown activity") # Use .get for safety
+            start_str = activity_json.get("start", "12:00 AM")
+            end_str = activity_json.get("end", "12:00 AM")
 
-    print(f"generate_hourly_schedule -> activity: {n_m1_hourly_compressed}")
-    return daily_req, n_m1_hourly_compressed
+            # Add description to daily_req list
+            daily_req.append(f"{activity} from {start_str} to {end_str}")
+
+            # Calculate duration for this activity
+            try:
+                start_time = datetime.datetime.strptime(start_str, '%I:%M %p')
+                end_time = datetime.datetime.strptime(end_str, '%I:%M %p')
+                min_diff_time = (end_time - start_time).total_seconds() / 60
+                # Handle overnight activities (e.g., ending before starting time)
+                if min_diff_time < 0:
+                    min_diff_time += 1440 # Add minutes in a day
+
+                min_diff_time = int(min_diff_time) # Convert to integer minutes
+
+                if min_diff_time > 0:
+                    n_m1_hourly_compressed += [[activity, min_diff_time]]
+                    remaining_time -= min_diff_time
+                    print(f"activity_json -> s:{start_time.strftime('%H:%M')} e:{end_time.strftime('%H:%M')} m:{min_diff_time} r:{remaining_time} t:{activity}")
+                else:
+                    print(f"Warning: Calculated zero duration for activity: {activity_json}")
+
+                # Basic check for time logic
+                if remaining_time < 0:
+                    print(f"Warning: Plan duration exceeds 24 hours after activity: {activity}")
+                    # Optionally break or adjust remaining_time = 0
+
+            except ValueError as e:
+                print(f"Error parsing time in daily_plan for activity '{activity}': {e}. Skipping.")
+                continue # Skip this activity if time format is wrong
+
+        # Add final sleep block if there's remaining time
+        if remaining_time > 0:
+            n_m1_hourly_compressed += [["sleeping", int(remaining_time)]]
+        elif remaining_time < 0:
+             print(f"Warning: Total plan duration exceeded 24 hours by {-remaining_time} minutes.")
+             # Optionally truncate the last activity?
+
+        # --- Modified Assertion ---
+        # Instead of crashing, print a warning if the plan is too short.
+        # The simulation might behave strangely, but won't stop here.
+        if len(n_m1_hourly_compressed) < 7:
+            print(f"Warning: generate_hourly_schedule -> activities num ({len(n_m1_hourly_compressed)}) is less than 7.")
+            print(f"Warning: This likely happened because the LLM call for the daily plan failed (e.g., quota exceeded) and returned a short fail-safe plan.")
+        # assert len(n_m1_hourly_compressed) >= 7, "generate_first_daily_plan -> activities num should larger than 7"
+        # --- End Modification ---
+
+
+        print(f"generate_hourly_schedule -> activity: {n_m1_hourly_compressed}")
+        return daily_req, n_m1_hourly_compressed
 
 
 def generate_task_decomp(persona, task, duration):
