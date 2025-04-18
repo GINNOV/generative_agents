@@ -603,11 +603,13 @@ class ReverieServer:
 
         print (ret_str)
 
-      except Exception as e:
+      except SystemExit as e: # Catch SystemExit specifically
+        print("Exiting simulation.") # Optional: print a message
+        raise e # Re-raise SystemExit to allow program termination
+      except Exception as e: # Catch other general exceptions
         metrics.fail_record(e)
         traceback.print_exc()
-        print ("Error.")
-        pass
+        print("An error occurred during command processing.")
 
 
 if __name__ == '__main__':

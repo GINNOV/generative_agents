@@ -1,5 +1,3 @@
-GA/reverie/backend_server/utils.py
-GA/frontend_server/settings/local.py
 GA/storage/*
 GA/static_dirs/*
 GA/environment/frontend_server/storage/*
@@ -17,7 +15,6 @@ GA/include/
 GA/pip-selfcheck.json
 GA/.DS_Store
 
-VirtualHome/utils.py
 VirtualHome/experiment/
 VirtualHome/data/*
 VirtualHome/*.txt

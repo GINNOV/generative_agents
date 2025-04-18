@@ -23,7 +23,8 @@ sys.path.append('../../')
 from global_methods import *
 from persona.prompt_template.gpt_structure import *
 from persona.prompt_template.print_prompt import *
-from utils import * # Import key_type and other utils settings
+from utils import (key_type,
+                   DEFAULT_OPENAI_COMPLETION_MODEL, DEFAULT_AZURE_COMPLETION_MODEL, DEFAULT_GEMINI_COMPLETION_MODEL)
 from metrics import metrics # Make sure metrics is imported if used
 
 
@@ -114,10 +115,10 @@ def run_gpt_prompt_wake_up_hour(persona, test_input=None, verbose=False):
     # Determine the engine based on key_type from utils
     engine_to_use = "gpt-3.5-turbo-instruct" # Default OpenAI legacy instruct model
     if key_type == 'gemini':
-        engine_to_use = "gemini-pro" # Map to Gemini (via generate_content)
+        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
     elif key_type == 'azure':
         # Potentially use a specific Azure deployment name if needed
-        engine_to_use = os.environ.get("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME", "gpt-35-turbo") # Example
+        engine_to_use = DEFAULT_AZURE_COMPLETION_MODEL
     # Add other conditions for llama if needed
 
     # Define parameters for the LLM call
@@ -578,7 +579,7 @@ def run_gpt_prompt_task_decomp(persona,
     # --- Model Parameter Modification ---
     engine_to_use = "gpt-3.5-turbo-instruct"
     if key_type == 'gemini':
-        engine_to_use = "gemini-pro"
+        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
 
     gpt_param = {"engine": engine_to_use,
                  # "api_type": "openai", # Removed
@@ -792,7 +793,7 @@ def run_gpt_prompt_action_sector(action_description,
     # --- Model Parameter Modification ---
     engine_to_use = "gpt-3.5-turbo-instruct"
     if key_type == 'gemini':
-        engine_to_use = "gemini-pro"
+        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
 
     gpt_param = {"engine": engine_to_use,
                  # "api_type": "openai", # Removed
@@ -929,7 +930,7 @@ def run_gpt_prompt_action_arena(action_description,
     # --- Model Parameter Modification ---
     engine_to_use = "gpt-3.5-turbo-instruct"
     if key_type == 'gemini':
-        engine_to_use = "gemini-pro"
+        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
 
     gpt_param = {"engine": engine_to_use,
                  # "api_type": "openai", # Removed
@@ -1034,7 +1035,7 @@ def run_gpt_prompt_action_game_object(action_description,
     # --- Model Parameter Modification ---
     engine_to_use = "gpt-3.5-turbo-instruct"
     if key_type == 'gemini':
-        engine_to_use = "gemini-pro"
+        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
 
     gpt_param = {"engine": engine_to_use,
                  # "api_type": "openai", # Removed
@@ -1195,7 +1196,7 @@ def run_gpt_prompt_event_triple(action_description, persona, verbose=False):
     # --- Model Parameter Modification ---
     engine_to_use = "gpt-3.5-turbo-instruct"
     if key_type == 'gemini':
-        engine_to_use = "gemini-pro"
+        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
 
     gpt_param = {"engine": engine_to_use,
                  # "api_type": "openai", # Removed
@@ -1332,7 +1333,7 @@ def run_gpt_prompt_act_obj_event_triple(act_game_object, act_obj_desc, persona, 
     # --- Model Parameter Modification ---
     engine_to_use = "gpt-3.5-turbo-instruct"
     if key_type == 'gemini':
-        engine_to_use = "gemini-pro"
+        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
 
     gpt_param = {"engine": engine_to_use,
                  "max_tokens": 30,
@@ -1586,7 +1587,7 @@ def run_gpt_prompt_new_decomp_schedule(persona,
     # --- Model Parameter Modification ---
     engine_to_use = "gpt-3.5-turbo-instruct"
     if key_type == 'gemini':
-        engine_to_use = "gemini-pro"
+        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
 
     gpt_param = {"engine": engine_to_use,
                  # "api_type": "openai", # Removed
@@ -1730,7 +1731,7 @@ def run_gpt_prompt_decide_to_talk(persona, target_persona, retrieved, test_input
     # --- Model Parameter Modification ---
     engine_to_use = "gpt-3.5-turbo-instruct"
     if key_type == 'gemini':
-        engine_to_use = "gemini-pro"
+        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
 
     gpt_param = {"engine": engine_to_use,
                  # "api_type": "openai", # Removed
@@ -1838,7 +1839,7 @@ def run_gpt_prompt_decide_to_react(persona, target_persona, retrieved, test_inpu
     # --- Model Parameter Modification ---
     engine_to_use = "gpt-3.5-turbo-instruct"
     if key_type == 'gemini':
-        engine_to_use = "gemini-pro"
+        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
 
     gpt_param = {"engine": engine_to_use,
                  # "api_type": "openai", # Removed
@@ -2010,7 +2011,7 @@ def run_gpt_prompt_create_conversation(persona, target_persona, curr_loc,
     # --- Model Parameter Modification ---
     engine_to_use = "gpt-3.5-turbo-instruct"
     if key_type == 'gemini':
-        engine_to_use = "gemini-pro" # Using gemini-pro for conversation generation
+        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
 
     gpt_param = {"engine": engine_to_use,
                  # "api_type": "openai", # Removed
@@ -2166,7 +2167,7 @@ def run_gpt_prompt_extract_keywords(persona, description, test_input=None, verbo
     # --- Model Parameter Modification ---
     engine_to_use = "gpt-3.5-turbo-instruct"
     if key_type == 'gemini':
-        engine_to_use = "gemini-pro" # Use gemini-pro for this task
+        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
 
     gpt_param = {"engine": engine_to_use,
                  # "api_type": "openai", # Removed
@@ -2219,7 +2220,7 @@ def run_gpt_prompt_keyword_to_thoughts(persona, keyword, concept_summary, test_i
     # --- Model Parameter Modification ---
     engine_to_use = "gpt-3.5-turbo-instruct"
     if key_type == 'gemini':
-        engine_to_use = "gemini-pro" # Use gemini-pro for this task
+        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
 
     gpt_param = {"engine": engine_to_use,
                  # "api_type": "openai", # Removed
@@ -2283,7 +2284,7 @@ def run_gpt_prompt_convo_to_thoughts(persona,
     # --- Model Parameter Modification ---
     engine_to_use = "gpt-3.5-turbo-instruct"
     if key_type == 'gemini':
-        engine_to_use = "gemini-pro" # Use gemini-pro for this task
+        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
 
     gpt_param = {"engine": engine_to_use,
                  # "api_type": "openai", # Removed
@@ -2564,7 +2565,7 @@ def run_gpt_prompt_insight_and_guidance(persona, statements, n, test_input=None,
     # --- Model Parameter Modification ---
     engine_to_use = "gpt-3.5-turbo-instruct"
     if key_type == 'gemini':
-        engine_to_use = "gemini-pro"
+        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
 
     gpt_param = {"engine": engine_to_use,
                  # "api_type": "openai", # Removed
@@ -2762,8 +2763,8 @@ def run_gpt_prompt_generate_next_convo_line(persona, interlocutor_desc, prev_con
     def get_fail_safe(): return "..."
 
     engine_to_use = "gpt-3.5-turbo-instruct"
-    if key_type == 'gemini': engine_to_use = "gemini-pro"
-    gpt_param = {"engine": engine_to_use, #"api_type": "openai", # Removed
+    if key_type == 'gemini': engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
+    gpt_param = {"engine": engine_to_use, 
                  "max_tokens": 250, "temperature": 1, "top_p": 1, "stream": False,
                  "frequency_penalty": 0, "presence_penalty": 0, "stop": ["\n"]}
     prompt_template = "persona/prompt_template/v2/generate_next_convo_line_v1.txt"
@@ -2787,7 +2788,7 @@ def run_gpt_prompt_generate_whisper_inner_thought(persona, whisper, test_input=N
     def get_fail_safe(): return "..."
 
     engine_to_use = "gpt-3.5-turbo-instruct"
-    if key_type == 'gemini': engine_to_use = "gemini-pro"
+    if key_type == 'gemini': engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
     gpt_param = {"engine": engine_to_use, #"api_type": "openai", # Removed
                  "max_tokens": 50, "temperature": 0, "top_p": 1, "stream": False,
                  "frequency_penalty": 0, "presence_penalty": 0, "stop": ["\n", '.']}
@@ -2811,7 +2812,7 @@ def run_gpt_prompt_planning_thought_on_convo(persona, all_utt, test_input=None, 
     def get_fail_safe(): return "..."
 
     engine_to_use = "gpt-3.5-turbo-instruct"
-    if key_type == 'gemini': engine_to_use = "gemini-pro"
+    if key_type == 'gemini': engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
     gpt_param = {"engine": engine_to_use, #"api_type": "openai", # Removed
                  "max_tokens": 50, "temperature": 0, "top_p": 1, "stream": False,
                  "frequency_penalty": 0, "presence_penalty": 0, "stop": ["\n", '.']}
