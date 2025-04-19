@@ -23,7 +23,7 @@ from utils import (
     key_type, debug, use_embedding_pool,
 
     # API Keys/Bases/Types/Versions
-    openai_api_key, openai_api_base, # <<< ADDED THESE
+    openai_api_key, openai_api_base,
     openai_api_type, openai_api_version,
     openai_completion_api_key, openai_completion_api_base,
     google_api_key, google_api_key_val,
@@ -510,7 +510,7 @@ def gpt_request_all_version(prompt, gpt_parameter):
         completion = openai.ChatCompletion.create(
             api_base=openai_api_base, # From utils.py
             api_key=openai_api_key,   # From utils.py ("none" usually)
-            model=model_name, # Use the model name (e.g., DEFAULT_LLAMA_CHAT_MODEL)
+            model=DEFAULT_LLAMA_CHAT_MODEL,
             messages=[{"role": "user", "content": prompt}], # Treat legacy prompt as user message
             temperature=gpt_parameter.get("temperature", 0.7),
             max_tokens=gpt_parameter.get("max_tokens", 1024),
