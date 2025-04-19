@@ -18,9 +18,21 @@ import inspect
 import re
 
 # --- Import Default Model Constants ---
-from utils import (key_type, use_embedding_pool,debug,local_embedding_model,DEFAULT_OPENAI_CHAT_MODEL, DEFAULT_AZURE_CHAT_MODEL, DEFAULT_LLAMA_CHAT_MODEL, DEFAULT_GEMINI_CHAT_MODEL,
-                   DEFAULT_OPENAI_COMPLETION_MODEL, DEFAULT_AZURE_COMPLETION_MODEL, DEFAULT_GEMINI_COMPLETION_MODEL,
-                   DEFAULT_OPENAI_EMBEDDING_MODEL, DEFAULT_AZURE_EMBEDDING_MODEL, DEFAULT_GEMINI_EMBEDDING_MODEL, DEFAULT_LOCAL_EMBEDDING_MODEL)
+from utils import (
+    # Core config
+    key_type, debug, use_embedding_pool,
+
+    # API Keys/Bases/Types/Versions
+    openai_api_key, openai_api_base, # <<< ADDED THESE
+    openai_api_type, openai_api_version,
+    openai_completion_api_key, openai_completion_api_base,
+    google_api_key, google_api_key_val,
+
+    # Default Model Constants
+    DEFAULT_OPENAI_CHAT_MODEL, DEFAULT_AZURE_CHAT_MODEL, DEFAULT_LLAMA_CHAT_MODEL, DEFAULT_GEMINI_CHAT_MODEL,
+    DEFAULT_OPENAI_COMPLETION_MODEL, DEFAULT_AZURE_COMPLETION_MODEL, DEFAULT_GEMINI_COMPLETION_MODEL,
+    DEFAULT_OPENAI_EMBEDDING_MODEL, DEFAULT_AZURE_EMBEDDING_MODEL, DEFAULT_GEMINI_EMBEDDING_MODEL,
+    DEFAULT_LOCAL_EMBEDDING_MODEL)
 
 from metrics import metrics
 from pool import get_embedding_pool, update_embedding_pool
@@ -644,10 +656,12 @@ local_embedding_model = None
 local_embedding_model_name = DEFAULT_LOCAL_EMBEDDING_MODEL
 
 def get_embedding(text, model="default"):
+    global local_embedding_model
     """
     Generates embeddings using the appropriate backend based on key_type.
     Includes retry logic for Gemini quota errors & immediate exit for other Gemini API errors.
     """
+
     text = text.replace("\n", " ").strip()
     if not text:
         print("Warning: Attempting to embed empty or whitespace-only text.")

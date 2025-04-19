@@ -39,7 +39,7 @@ DEFAULT_GEMINI_COMPLETION_MODEL = "gemini-1.5-flash-latest"
 DEFAULT_OPENAI_EMBEDDING_MODEL = "text-embedding-ada-002"
 DEFAULT_AZURE_EMBEDDING_MODEL = "text-embedding-ada-002" # Often the same deployment name
 DEFAULT_GEMINI_EMBEDDING_MODEL = "models/embedding-001"
-DEFAULT_LOCAL_EMBEDDING_MODEL = "text-embedding-ada-002" # Local embedding model for Llama
+DEFAULT_LOCAL_EMBEDDING_MODEL = "all-MiniLM-L6-v2" # Local embedding model for Llama all-MiniLM-L6-v2
 
 # --- DEFAULT API CONFIG VALUES (Will be populated based on key_type) ---
 openai_api_key = None
