@@ -15,21 +15,19 @@ import time
 import os
 import sys
 import inspect
-import re # Added previously for parsing retry delay
+import re
 
-# Import configurations and utilities
-from utils import * # Imports key_type, api keys/bases, etc.
 # --- Import Default Model Constants ---
-from utils import (DEFAULT_OPENAI_CHAT_MODEL, DEFAULT_AZURE_CHAT_MODEL, DEFAULT_LLAMA_CHAT_MODEL, DEFAULT_GEMINI_CHAT_MODEL,
+from utils import (key_type, use_embedding_pool,debug,local_embedding_model,DEFAULT_OPENAI_CHAT_MODEL, DEFAULT_AZURE_CHAT_MODEL, DEFAULT_LLAMA_CHAT_MODEL, DEFAULT_GEMINI_CHAT_MODEL,
                    DEFAULT_OPENAI_COMPLETION_MODEL, DEFAULT_AZURE_COMPLETION_MODEL, DEFAULT_GEMINI_COMPLETION_MODEL,
-                   DEFAULT_OPENAI_EMBEDDING_MODEL, DEFAULT_AZURE_EMBEDDING_MODEL, DEFAULT_GEMINI_EMBEDDING_MODEL)
-# --- End Import ---
+                   DEFAULT_OPENAI_EMBEDDING_MODEL, DEFAULT_AZURE_EMBEDDING_MODEL, DEFAULT_GEMINI_EMBEDDING_MODEL, DEFAULT_LOCAL_EMBEDDING_MODEL)
+
 from metrics import metrics
 from pool import get_embedding_pool, update_embedding_pool
+from sentence_transformers import SentenceTransformer
+# --- End Import ---
 
 # --- Configure API Clients ---
-
-# OpenAI/Azure/Llama configuration happens via variables imported from utils.py
 
 # Google Gemini Client Initialization (Moved here for clarity, uses utils.py vars)
 if key_type == 'gemini':
@@ -421,6 +419,7 @@ def gpt_request_all_version(prompt, gpt_parameter):
          if key_type == 'gemini': model_name = DEFAULT_GEMINI_COMPLETION_MODEL
          elif key_type == 'openai': model_name = DEFAULT_OPENAI_COMPLETION_MODEL
          elif key_type == 'azure': model_name = DEFAULT_AZURE_COMPLETION_MODEL
+         elif key_type == 'llama': model_name = DEFAULT_LLAMA_CHAT_MODEL
          else: model_name = "text-davinci-003" # Generic fallback?
 
     # --- GEMINI (Attempted Mapping) ---
@@ -487,6 +486,30 @@ def gpt_request_all_version(prompt, gpt_parameter):
             metrics.fail_record(error_message)
             print("Stopping the simulation due to model initialization error.")
             sys.exit(1)
+
+    # --- LLAMA (Mapped via Chat Completion Endpoint) ---
+    elif key_type == 'llama':
+        print(f"--- Making Llama Request (Mapped from Legacy Completion) ---")
+        print(f"  Model: {model_name}")
+        print(f"  Prompt: {prompt[:100]}...")
+        print(f"  Warning: Legacy frequency/presence penalty parameters ignored for Llama.")
+
+        # Use the ChatCompletion endpoint even for legacy requests
+        completion = openai.ChatCompletion.create(
+            api_base=openai_api_base, # From utils.py
+            api_key=openai_api_key,   # From utils.py ("none" usually)
+            model=model_name, # Use the model name (e.g., DEFAULT_LLAMA_CHAT_MODEL)
+            messages=[{"role": "user", "content": prompt}], # Treat legacy prompt as user message
+            temperature=gpt_parameter.get("temperature", 0.7),
+            max_tokens=gpt_parameter.get("max_tokens", 1024),
+            top_p=gpt_parameter.get("top_p", 1.0),
+            # stream=gpt_parameter.get("stream", False), # Stream might work differently
+            stop=gpt_parameter.get("stop", None)
+        )
+        # Llama response structure might vary, adjust if needed
+        response_text = completion["choices"][-1]["message"]["content"]
+        # Token usage might not be standard or available
+        total_token = completion.get('usage', {}).get('total_tokens', 0)
 
     # --- AZURE / OPENAI (Legacy Completion Endpoint) ---
     else:
@@ -617,6 +640,8 @@ def safe_generate_response(prompt, gpt_parameter, repeat=5, fail_safe_response="
 # ============================================================================
 # ########################[SECTION 3: EMBEDDINGS] ###########################
 # ============================================================================
+local_embedding_model = None
+local_embedding_model_name = DEFAULT_LOCAL_EMBEDDING_MODEL
 
 def get_embedding(text, model="default"):
     """
@@ -635,6 +660,43 @@ def get_embedding(text, model="default"):
              if debug: print(f"Embedding cache hit for text: {text[:50]}...")
              return exist_embedding
         elif debug: print(f"Embedding cache miss for text: {text[:50]}...")
+
+    # --- Handle 'llama' key_type using local Sentence Transformers ---
+    if key_type == 'llama':
+        if local_embedding_model is None:
+             try:
+                  # Load the model only once
+                  from sentence_transformers import SentenceTransformer
+                  print(f"--- Loading Local Embedding Model ({local_embedding_model_name}) ---")
+                  # You might need to specify device='cuda' if you have a GPU and want to use it
+                  local_embedding_model = SentenceTransformer(local_embedding_model_name)
+             except ImportError:
+                  print("ERROR: sentence-transformers library not found. Cannot generate local embeddings for 'llama' key_type.")
+                  print("Install with: pip install sentence-transformers")
+                  return None # Cannot proceed without the library
+             except Exception as load_e:
+                  print(f"ERROR: Failed to load local embedding model '{local_embedding_model_name}': {load_e}")
+                  # Check if the model exists locally or needs downloading
+                  return None # Cannot proceed without the model
+
+        print(f"--- Generating Local Embedding ({local_embedding_model_name}) ---")
+        try:
+             start_time = time.time()
+             # Generate embedding and convert numpy array to list
+             embedding_vector = local_embedding_model.encode(text).tolist()
+             time_use = time.time() - start_time
+             print(f"Local embedding generated in {time_use:.2f}s")
+
+             # Record metrics (optional, no token count for local models)
+             # Use get_caller_function_names() if defined globally or imported
+             metrics.call_record(get_caller_function_names(), local_embedding_model_name, 0, time_use)
+             if use_embedding_pool: update_embedding_pool(text, embedding_vector)
+             return embedding_vector
+        except Exception as e:
+             print(f"ERROR generating local embedding: {e}")
+             metrics.fail_record(f"Local Embedding Error: {e}")
+             return None # Return None on local embedding error
+    # --- End 'llama' handling ---
 
     # --- Select Model Based on Backend if Default ---
     effective_model = model

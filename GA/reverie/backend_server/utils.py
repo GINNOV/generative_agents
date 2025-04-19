@@ -4,7 +4,7 @@ import os
 import re # Added for parsing retry delay in gpt_structure
 
 # SELECT YOUR BACKEND KEY TYPE HERE:
-key_type = 'gemini' # Options: 'openai', 'azure', 'llama', 'gemini'
+key_type = 'llama' # Options: 'openai', 'azure', 'llama', 'gemini'
 
 # --- VALIDATE KEY TYPE ---
 VALID_KEY_TYPES = ['openai', 'azure', 'llama', 'gemini']
@@ -15,15 +15,13 @@ openai_api_key_val = "<Your OpenAI API Key>"
 openai_key_owner = "<Name>" # Optional: For reference
 azure_api_key_val = "<Your Azure API Key>"
 azure_api_base_val = "<Your Azure API Base (e.g., https://YOUR_RESOURCE_NAME.openai.azure.com/)>"
-azure_chat_deployment_name_val = "gpt-35-turbo" # Default Azure chat deployment name
-azure_completion_deployment_name_val = "text-davinci-003" # Default Azure completion deployment name
-llama_api_base_val = "<Llama API URL (e.g., http://localhost:8000/v1)>" # Ensure OpenAI compatible endpoint /v1
-llama_chat_model_name_val = "your-llama-chat-model-name"
+azure_chat_deployment_name_val = "gpt-35-turbo"
+azure_completion_deployment_name_val = "text-davinci-003" 
+llama_api_base_val = "<Llama API URL (e.g., http://localhost:11434/v1)>" # Ensure OpenAI compatible endpoint /v1
+llama_chat_model_name_val = "llama3:8b"
 google_api_key_val = "<Your Google API Key (from Google AI Studio or Cloud)>"
 
 # --- DEFAULT MODEL NAMES ---
-# Define the default models to use for different tasks and backends.
-# You can easily change these values here to update the models used application-wide.
 
 # Chat Models (Used by llm_request, ChatGPT_request, etc.)
 DEFAULT_OPENAI_CHAT_MODEL = "gpt-3.5-turbo"
@@ -32,7 +30,7 @@ DEFAULT_LLAMA_CHAT_MODEL = llama_chat_model_name_val
 DEFAULT_GEMINI_CHAT_MODEL = "gemini-1.5-flash-latest"
 
 # Completion Models (Used by legacy functions like run_gpt_prompt_wake_up_hour)
-DEFAULT_OPENAI_COMPLETION_MODEL = "gpt-3.5-turbo-instruct" # Or "text-davinci-003"
+DEFAULT_OPENAI_COMPLETION_MODEL = "gpt-3.5-turbo-instruct"
 DEFAULT_AZURE_COMPLETION_MODEL = os.getenv("AZURE_OPENAI_COMPLETION_DEPLOYMENT_NAME", azure_completion_deployment_name_val)
 # Gemini doesn't have a direct completion equivalent, map to a chat model
 DEFAULT_GEMINI_COMPLETION_MODEL = "gemini-1.5-flash-latest"
@@ -41,6 +39,7 @@ DEFAULT_GEMINI_COMPLETION_MODEL = "gemini-1.5-flash-latest"
 DEFAULT_OPENAI_EMBEDDING_MODEL = "text-embedding-ada-002"
 DEFAULT_AZURE_EMBEDDING_MODEL = "text-embedding-ada-002" # Often the same deployment name
 DEFAULT_GEMINI_EMBEDDING_MODEL = "models/embedding-001"
+DEFAULT_LOCAL_EMBEDDING_MODEL = "text-embedding-ada-002" # Local embedding model for Llama
 
 # --- DEFAULT API CONFIG VALUES (Will be populated based on key_type) ---
 openai_api_key = None
