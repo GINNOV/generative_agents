@@ -4,13 +4,6 @@
 <img src="./docs/images/aga_in_ga.gif" >
 </p>
 
-This work is based on [Generative Agents: Interactive Simulacra of Human Behavior](https://github.com/joonspk-research/generative_agents). Generative Agents provides a platform that simulates a virtual town with both front-end and back-end capabilities. For convenience and to reduce experiment time, I [forked](https://github.com/AffordableGenerativeAgents/Affordable-Generative-Agents?tab=readme-ov-file) a version that operates purely on the back-end. For more detailed information about the platform, please refer to the original repo [Generative Agents](https://github.com/joonspk-research/generative_agents).
-
-## Good To Know
-When I saw this work coming to life I got very excited then I realized that the cost to just run for a fun moment would have racked cloud bills. So I added support for more cost effective models and start adding features. I think this work has a great potential waiting for some creativity and boldness to unlock it.
-
-*I don't know what I am doing*. I enjoy this type of project, and I decided to face palm myself with the unknown, learn something, and share what I figure out. If you have advices, share away. Good luck, to both of us.
-
 # Latest Changes Highlights
 * standardized the api keys management
 * added [gemini](https://ai.google.dev) support
@@ -18,7 +11,7 @@ When I saw this work coming to life I got very excited then I realized that the 
 * crash when the reasoning folder already existed, fixed
 * improved error messages
 
-more details can be found [here](./docs/changelog.md).
+more details specific to this environment can be found [here](./docs/changelog.md).
 
 
 ## Preparation

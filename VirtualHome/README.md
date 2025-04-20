@@ -1,15 +1,15 @@
 # AGA in VirtualHome
 
 <p align="center" width="100%">
-<img src="../doc/pic/virtualhome_generate_daily_plan.png" width="50%" height="50%">
-<img src="../doc/pic/virtualhome_generate_daily_plan.png" width="50%" height="50%">
-<img src="../doc/pic/virtualhome_framework.png" width="50%" height="50%">
+<img src="./docs/images/virtualhome_generate_daily_plan.png" width="80%" height="80%">
+<img src="./docs/images/virtualhome_generate_daily_plan.png" width="80%" height="80%">
+<img src="./docs/images/virtualhome_framework.png" width="80%" height="80%">
 </p>
 
 This work is based on [VirtualHome](https://github.com/xavierpuigf/virtualhome). VirtualHome provides a platform that simulates a 3D household environment. For more detailed information about the platform, please refer to [VirtualHome](https://github.com/xavierpuigf/virtualhome).
 
 ## Preparation
-To set up your environment, you will need to generate a `utils.py` file that contains your LLM API key, install dependencies and download the VirtualHome simulator.
+To set up your environment, you will need to update `utils.py` file that contains your LLM API key, install dependencies and download the VirtualHome simulator.
 
 ### Step 1. Generate Utils File
 In the `VirtualHome` folder (where `main.py` is located), create a new file titled `utils.py` and copy and paste the content below into the file, we offer Azure API, OpenAI API and llama version (you should specify the `key_type`):
