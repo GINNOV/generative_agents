@@ -2,6 +2,10 @@
 # ollama-service.sh
 # Script to set up Ollama as a persistent service on macOS, accessible on LAN
 
+# Get the directory where the script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+echo "Script is running from directory: $SCRIPT_DIR"
+
 # Get local IP address
 LOCAL_IP=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}' | head -n 1)
 
@@ -16,15 +20,15 @@ echo "Your LAN address is: $LOCAL_IP:11434"
 
 # Start Ollama in the background
 echo "Starting Ollama as a background process..."
-nohup ollama serve > ~/ollama.log 2>&1 &
+nohup ollama serve > "$SCRIPT_DIR/ollama.log" 2>&1 &
 
 # Save the PID for later reference
-echo $! > ~/ollama.pid
-echo "Ollama is now running with PID: $(cat ~/ollama.pid)"
-echo "Log file is available at: ~/ollama.log"
+echo $! > "$SCRIPT_DIR/ollama.pid"
+echo "Ollama is now running with PID: $(cat "$SCRIPT_DIR/ollama.pid")"
+echo "Log file is available at: $SCRIPT_DIR/ollama.log"
 
 # Create a simple HTML status page
-cat > ~/ollama_status.html << EOL
+cat > "$SCRIPT_DIR/ollama_status.html" << EOL
 <!DOCTYPE html>
 <html>
 <head>
@@ -48,13 +52,13 @@ cat > ~/ollama_status.html << EOL
     <ul>
         <li>From other devices on your network, use: <code>http://$LOCAL_IP:11434</code></li>
         <li>For API requests: <code>curl http://$LOCAL_IP:11434/api/tags</code></li>
-    </ul>
+    </ul> 
 </body>
 </html>
 EOL
 
-echo "Created status page at ~/ollama_status.html"
+echo "Created status page at $SCRIPT_DIR/ollama_status.html"
 echo "Ollama is now serving on your LAN at $LOCAL_IP:11434"
 echo "Other devices can connect to this address"
 echo ""
-echo "To stop Ollama service, run: kill \$(cat ~/ollama.pid)"
+echo "To stop Ollama service, run: kill \$(cat \"$SCRIPT_DIR/ollama.pid\")"

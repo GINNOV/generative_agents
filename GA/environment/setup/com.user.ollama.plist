@@ -8,7 +8,7 @@
     <array>
         <string>/bin/bash</string>
         <string>-c</string>
-        <string>export OLLAMA_HOST="0.0.0.0:11434"; ollama serve</string>
+        <string>cd /path/to/your/ollama/directory && ./ollama-service.sh</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
