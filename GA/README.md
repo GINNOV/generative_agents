@@ -1,66 +1,71 @@
 # AGA in Generative Agents
 
 <p align="center" width="100%">
-<img src="../doc/pic/aga_in_ga.gif" width="80%" height="80%">
+<img src="./docs/images/aga_in_ga.gif" >
 </p>
 
 This work is based on [Generative Agents: Interactive Simulacra of Human Behavior](https://github.com/joonspk-research/generative_agents). Generative Agents provides a platform that simulates a virtual town with both front-end and back-end capabilities. For convenience and to reduce experiment time, I [forked](https://github.com/AffordableGenerativeAgents/Affordable-Generative-Agents?tab=readme-ov-file) a version that operates purely on the back-end. For more detailed information about the platform, please refer to the original repo [Generative Agents](https://github.com/joonspk-research/generative_agents).
 
 ## Good To Know
-I am learning the codebase as I go, I didn't want to use the overly expensive OpenAI apis. I waited a few months that the original repo would update for other AI labs, it didn't happen so I did on my own.
+When I saw this work coming to life I got very excited then I realized that the cost to just run for a fun moment would have racked cloud bills. So I added support for more cost effective models and start adding features. I think this work has a great potential waiting for some creativity and boldness to unlock it.
 
-# Fork Changes
-* standardized the api keys
+*I don't know what I am doing*. I enjoy this type of project, and I decided to face palm myself with the unknown, learn something, and share what I figure out. If you have advices, share away. Good luck, to both of us.
+
+# Latest Changes Highlights
+* standardized the api keys management
 * added [gemini](https://ai.google.dev) support
-* added some graceful shutdown for when [rate limit](https://ai.google.dev/gemini-api/docs/rate-limits) is hit
-* the code was failing when the reasoning folder already existed, fixed
-* improved some error messages to make sense when things don't work out
+* added some graceful shutdown for when [rate limit](https://ai.google.dev/gemini-api/docs/rate-limits) ceiling is hit
+* crash when the reasoning folder already existed, fixed
+* improved error messages
+
+more details can be found [here](./docs/changelog.md).
 
 
 ## Preparation
-To set up your environment, you will need to modify `utils.py` file that contains your LLM API key and download the necessary packages.
+If you plan to use [LLama](./docs/llama.md) or Gemini Flash there's a read me that specifically gives guidance on those. Either way you either set environment variables or directly modify `utils.py` file that contains your LLM API key. then install the necessary packages.
 
-### Step 1. Update Utils File
-set the LLM that you are going to use in the `utils.py` file. There are two of them, one in backend folder and another in the simulation folder.
+### STEP 1: Update Utils File
+set the LLM that you are going to use in the `utils.py` file by modifying `key_type = 'llama'`. Everything else should be already all set for a firt run.
+**for gemini**
+`export GOOGLE_API_KEY="your-key-here"`
+**for llama**
+`export OPENAI_API_KEY="your-key-here"`
 
-**For gemini:**
-In your shell profile (oh however, you like otherwise), define `GOOGLE_API_KEY` like this `export GOOGLE_API_KEY="your-key-here"`
-
-### Step 2. Install requirements.txt
-Install everything listed in the `requirements.txt` file.
-
-```pip install -r requirements.txt```
+### STEP 2: Install requirements
+ * Create a virtual environment `python -m venv crazy_town-env`. Activate the environment
+ * Install requirements ```pip install -r requirements.txt```
 
 ## Running a Simulation
 The back-end only version is in `reverie_offline.py`, you should run in the following format:
 
-`
-python reverie_offline.py -o <the forked simulation> -t <the new simulation> -s <the total run step>`
+`python reverie_offline.py -o <baseline_simulation> -t <new simulation> -s <the total run step>`
 
 **like this**:
-```bash
-python reverie_offline.py -o base_the_ville_isabella_maria_klaus -t aga_3_person -s 17280
-```
-start with a very small number (like 300) so that you can make sure that everything works.
 
---
+```bash
+clear & python reverie_offline.py -o base_the_ville_isabella_maria_klaus -t nice_person -s 17280
+```
+**advice**: Start with a very small number (like 300) so that you can make sure that everything works before waiting for hours. I also suggest you dump the output of the console in to a log.txt to make sure you haven't missed logging errors. (keys, timeouts and so on). A QTT service would be nice, maybe in future.
+
+---
+
 # Visualization
 To visualize, you need to go through three steps: 
 1. Complete a simulation
 2. Compress the simulation data
 3. Use the Front-end visualization.
 
-## Step 1. Complete a simulation
+## STEP 1: Complete a simulation
 After finish the [Running a Simulation](#running-a-simulation), a project fold with `<the new simulation>` will be created in `./environment/frontend_server_storage`
 
-### Step 2. Compress
+### STEP 2: Compress
 Before visualization in front-end, you have to compress the project files first. 
 
 change the code in `./reverie/compress_sim_storage.py`
 
 ```python
 if __name__ == '__main__':
-  compress("<the new simulation>")  # change to your project name
+  compress("<the new simulation>")
 ```
 
 Run the following command:
@@ -69,7 +74,7 @@ Run the following command:
 python compress_sim_storage.py
 ```
 
-## Step 3. Front-end visualization
+## STEP 4: Front-end visualization
 setting up the front-end, first navigate to `environment/frontend_server` and run:
 ```bash
 python manage.py runserver
@@ -86,8 +91,9 @@ python reverie_offline.py ... \
     --disable_policy \     # Turn off the Lifestyle policy
     --disable_relationship # Turn off the Social Impression Memory
 ```
-
+# Storage
 All relevant records for the experiments are generated in the `<project fold>/metrics`:
+
 ```
 ─ metrics
 ├── detail_info.json                # Complete LLM call log
@@ -104,5 +110,3 @@ All relevant records for the experiments are generated in the `<project fold>/me
 During experiments, generated policies and embedding features are saved in `./environment/fribtebd_server/storage/public`. The number of policies will affect the token consumption of the experiment.
 
 The implementation of **MindWandering** is in the branch of `mindwandering` of the forked repo.
-
-note: I don't know what I am doing. I enjoy this type of project and I decided to face palm myself with the unknown, learn something and share what I figure out. If you have advices, share away. Good luck.
