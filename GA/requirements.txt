@@ -70,3 +70,5 @@ numpy
 scipy
 scikit-learn
 python-dotenv
+openai==<1.0.0
+google-generativeai
