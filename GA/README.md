@@ -22,6 +22,8 @@ more details specific to this environment can be found [here](./docs/changelog.m
 
 If you plan to use [LLama](/GA/docs/llama.md) or [Gemini Flash](/GA/docs/gemini.md) there's a read me that specifically gives guidance on those. Either way you either set environment variables or directly modify `utils.py` file that contains your LLM API key. then install the necessary packages.
 
+for all switches available for a simulation run see [this](#command-line-arguments-for-reverie_offlinepy)
+
 ### STEP 1: Update Utils File
 set the LLM that you are going to use in the `utils.py` file by modifying `key_type = 'llama'`. Everything else should be already all set for a firt run.
 **for gemini**
@@ -108,3 +110,59 @@ All relevant records for the experiments are generated in the `<project fold>/me
 During experiments, generated policies and embedding features are saved in `./environment/fribtebd_server/storage/public`. The number of policies will affect the token consumption of the experiment.
 
 The implementation of **MindWandering** is in the branch of `mindwandering` of the forked repo.
+
+### Command-Line Arguments for `reverie_offline.py`
+
+#### `-o` or `--origin`
+- **Type**: `str` (string)  
+- **Default**: `'base_the_ville_isabella_maria_klaus'`  
+- **Purpose**: Specifies the name of the existing simulation template/directory (located in `environment/frontend_server/storage/`) that you want to fork or copy from as the starting point for your new run.
+
+---
+
+#### `-t` or `--target`
+- **Type**: `str` (string)  
+- **Default**: `None` (required if not using `-c` or `-q`)  
+- **Purpose**: Specifies the name for the new simulation output directory that will be created (usually within `environment/frontend_server/storage/` or potentially `../outputs/` depending on the specific setup in that fork) to store the results (logs, memory saves, etc.) of this specific run.
+
+---
+
+#### `-s` or `--step`
+- **Type**: `int` (integer)  
+- **Default**: `None` (required if not using `-c` or `-q`)  
+- **Purpose**: Defines the total number of simulation steps (likely representing seconds in simulation time) to execute before the script automatically stops and saves.
+
+---
+
+#### `--disable_policy`
+- **Type**: Flag (`boolean`)  
+- **Default**: `False` (policy is enabled by default)  
+- **Purpose**: If this flag is included (e.g., `python reverie_offline.py ... --disable_policy`), it sets `args.disable_policy` to `False`, and `utils.use_policy = args.disable_policy` will then set `utils.use_policy` to `False`, disabling the policy pool feature. If omitted, the flag defaults to `True`, and the policy feature stays enabled.
+
+---
+
+#### `--disable_relationship`
+- **Type**: Flag (`boolean`)  
+- **Default**: `False` (relationship memory is enabled by default)  
+- **Purpose**: Works similarly to `--disable_policy`. Including this flag disables the relationship/social impression memory feature by setting `utils.use_relationship = False`. If omitted, the feature stays enabled.
+
+---
+
+#### `-c` or `--call`
+- **Type**: `str` (string)  
+- **Default**: `None`  
+- **Purpose**: If provided with a persona name (e.g., `-c "Isabella Rodriguez"`), the script enters an interactive interview mode with that agent instead of running the simulation loop.
+
+---
+
+#### `-q` or `--question`
+- **Type**: `str` (string)  
+- **Default**: `None`  
+- **Purpose**: If provided with a question string (e.g., `-q "Did you go to the party?"`), the script asks this question to all agents defined in the origin simulation and likely prints or saves the answers, instead of running the simulation loop.
+
+---
+
+### Example Command
+
+```bash
+python reverie_offline.py -o base_the_ville_isabella_maria_klaus -t cippa_person -s 10
