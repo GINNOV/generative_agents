@@ -136,107 +136,146 @@ def get_random_alphanumeric(i=6, j=6):
 def run_gpt_prompt_wake_up_hour(persona, test_input=None, verbose=False):
     """
     Given the persona, returns an integer that indicates the hour when the
-    persona wakes up.
+    persona wakes up, using a chat model and expecting direct JSON output.
 
     INPUT:
         persona: The Persona class instance
     OUTPUT:
-        integer string for the wake up hour (e.g., "6", "7").
-        The calling code will convert this to int.
+        integer for the wake up hour (e.g., 6, 7).
     """
+    log_func_error = logging.error if logging.getLogger().hasHandlers() else print
+    log_func_warn = logging.warning if logging.getLogger().hasHandlers() else print
+    log_func_debug = logging.debug if logging.getLogger().hasHandlers() else print
 
     def create_prompt_input(persona, test_input=None):
         if test_input: return test_input
-        # Input prompt includes persona summary, lifestyle, and name
-        prompt_input = [persona.scratch.get_str_iss(),
-                        persona.scratch.get_str_lifestyle(),
-                        persona.scratch.get_str_firstname()]
+        # Use inputs matching the updated prompt template
+        prompt_input = [persona.scratch.get_str_iss(),       # !<INPUT 0>! Core Characteristics
+                        persona.scratch.get_str_lifestyle(), # !<INPUT 1>! Lifestyle
+                        persona.scratch.get_str_firstname()] # !<INPUT 2>! Name
         return prompt_input
 
     def __func_clean_up(gpt_response, prompt=""):
-        # Cleans the GPT response to extract only the hour number.
-        # Uses regex to find the first sequence of digits.
-        cleaned_response = gpt_response.strip()
-        # Search for digits in the response
-        match = re.search(r'\d+', cleaned_response)
-        if match:
-            # Return the first sequence of digits found
-            return match.group(0)
-        else:
-            # If no digits found, return the original stripped response
-            # The validation function will handle non-numeric cases.
-            print(f"WARN: Could not extract hour number from wake_up response: '{cleaned_response}'")
-            return cleaned_response # Let validation handle it
+        # Cleans the GPT response expecting {"wake_up_hour": H} JSON string
+        if not gpt_response or gpt_response == "LLM ERROR":
+             log_func_warn(f"Received empty or error response: '{gpt_response}'. Using failsafe.")
+             return get_fail_safe() # Use failsafe if LLM failed
 
-    def __func_validate(gpt_response, prompt=""):
-        # Validates if the cleaned response is a digit string.
         try:
-            cleaned_response = __func_clean_up(gpt_response, prompt)
-            # Check if the cleaned response consists only of digits
-            if cleaned_response.isdigit():
-                # Optionally, check if the hour is within a reasonable range (e.g., 0-23)
-                hour = int(cleaned_response)
-                if 0 <= hour <= 23:
-                    return True
-                else:
-                    print(f"WARN: Extracted hour {hour} out of range (0-23).")
-                    return False # Consider it invalid if out of range
+            # Find the start of the JSON object
+            json_start_index = gpt_response.find('{')
+            if json_start_index == -1:
+                 log_func_warn(f"Could not find start of JSON object ('{{') in response: {gpt_response[:200]}... Using failsafe.")
+                 return get_fail_safe()
+
+            # Find the matching closing brace
+            brace_level = 0
+            json_end_index = -1
+            for i in range(json_start_index, len(gpt_response)):
+                 if gpt_response[i] == '{': brace_level += 1
+                 elif gpt_response[i] == '}': brace_level -= 1
+                 if brace_level == 0:
+                      json_end_index = i + 1
+                      break
+
+            if json_end_index == -1:
+                 log_func_warn(f"Could not find matching end brace ('}}') in response: {gpt_response[json_start_index:json_start_index+200]}... Using failsafe.")
+                 return get_fail_safe()
+
+            # Extract and clean the JSON string
+            json_string = gpt_response[json_start_index:json_end_index].strip()
+            if not json_string:
+                 log_func_warn(f"Empty string after JSON extraction. Original response: {gpt_response[:200]}... Using failsafe.")
+                 return get_fail_safe()
+
+            # Parse the JSON
+            parsed_json = json.loads(json_string)
+
+            if isinstance(parsed_json, dict) and "wake_up_hour" in parsed_json:
+                hour_val = parsed_json["wake_up_hour"]
+                # Convert extracted value to integer
+                return int(hour_val)
             else:
-                # If not digits, it's invalid for int() conversion
-                return False
+                 log_func_warn(f"Parsed JSON missing 'wake_up_hour' key or not a dict: {parsed_json}. Using failsafe.")
+                 return get_fail_safe() # Use failsafe if key missing
+
+        except (json.JSONDecodeError, ValueError, TypeError) as e:
+            log_func_warn(f"Could not parse/extract hour from response '{gpt_response[:200]}...': {e}. Using failsafe.")
+            return get_fail_safe() # Use failsafe if parsing/conversion fails
         except Exception as e:
-            # Log error if any unexpected issue occurs during validation
-            metrics.fail_record(f"Validation exception in wake_up_hour: {e}")
+            log_func_error(f"Unexpected error cleaning wake_up_hour response: {e}")
+            return get_fail_safe()
+
+    def __func_validate(cleaned_output, prompt=""):
+        # Validates if the cleaned output is an integer between 0 and 23.
+        # Note: cleaned_output comes *after* __func_clean_up runs.
+        try:
+            hour = int(cleaned_output) # Should already be int from cleanup
+            if 0 <= hour <= 23:
+                return True
+            else:
+                log_func_warn(f"Wake up hour validation failed: {hour} out of range (0-23).")
+                return False
+        except (ValueError, TypeError) as e:
+            # This case should ideally be caught by cleanup, but double-check
+            log_func_error(f"Wake up hour validation error: Could not convert '{cleaned_output}' to int: {e}")
+            # metrics.fail_record(f"Validation exception in wake_up_hour: {e}") # Optional
             return False
 
     def get_fail_safe():
-        # Returns a default wake-up hour as a string if validation fails
-        fs = "8" # Default to 8 AM
+        # Returns a default wake-up hour as an integer
+        fs = 8 # Default to 8 AM
         return fs
 
-    # --- Model Parameter Modification ---
-    # Determine the engine based on key_type from utils
-    engine_to_use = "gpt-3.5-turbo-instruct" # Default OpenAI legacy instruct model
-    if key_type == 'gemini':
-        engine_to_use = DEFAULT_GEMINI_COMPLETION_MODEL
-    elif key_type == 'azure':
-        # Potentially use a specific Azure deployment name if needed
-        engine_to_use = DEFAULT_AZURE_COMPLETION_MODEL
-    # Add other conditions for llama if needed
+    # Define parameters for the Chat model call (engine is handled by llm_request)
+    # Placeholder gpt_param for print_run_prompts if needed
+    gpt_param = {"engine": "Chat Model (e.g., llama3, gemini-pro)", "temperature": 0.8, "top_p": 1}
 
-    # Define parameters for the LLM call
-    gpt_param = {"engine": engine_to_use, # Use conditional engine name
-                 "max_tokens": 10, # Increased slightly to allow conversational padding
-                 "temperature": 0.8,
-                 "top_p": 1,
-                 "stream": False,
-                 "frequency_penalty": 0,
-                 "presence_penalty": 0,
-                 "stop": ["\n"]} # Stop generation at newline
-    # --- End Modification ---
-
-    # Define the prompt template file
+    # Define the prompt template file (using the updated version)
     prompt_template = "persona/prompt_template/v2/wake_up_hour_v1.txt"
     # Create the input data for the prompt
     prompt_input = create_prompt_input(persona, test_input)
     # Generate the full prompt string
     prompt = generate_prompt(prompt_input, prompt_template)
-    # Define the fail-safe value
+    # Define the fail-safe value (integer)
     fail_safe = get_fail_safe()
 
-    # Call the LLM safely, with retries, validation, and cleanup
-    # Uses legacy safe_generate_response -> GPT_request -> gpt_request_all_version
-    # gpt_request_all_version should handle routing to Gemini if key_type is 'gemini'
-    output = safe_generate_response(prompt, gpt_param, 5, fail_safe,
-                                    __func_validate, __func_clean_up)
+    # --- Use simpler ChatGPT_request and handle retries/validation locally ---
+    output = fail_safe # Default to fail_safe
+    repeat_count = 3 # Number of attempts
+
+    for i in range(repeat_count):
+        # Call the simpler wrapper which returns the raw string or "LLM ERROR"
+        raw_response = ChatGPT_request(prompt) # ChatGPT_request uses llm_request internally
+
+        # Clean the raw response using our specific logic
+        cleaned_response = __func_clean_up(raw_response, prompt) # Cleanup expects raw string
+
+        # Validate the cleaned response (which should be an integer)
+        if __func_validate(cleaned_response, prompt):
+            output = cleaned_response # Assign the valid integer
+            log_func_debug(f"Wake up hour successful on attempt {i+1}: {output}")
+            break # Exit loop on success
+        else:
+            log_func_warn(f"Wake up hour attempt {i+1}/{repeat_count} failed validation. Cleaned response: '{cleaned_response}'")
+            # Optional: sleep before retry? time.sleep(0.5)
+
+    # If loop finishes without success, output remains the fail_safe value
+    if output == fail_safe:
+         log_func_error(f"Wake up hour failed after {repeat_count} attempts. Using fail_safe: {fail_safe}")
+
+    # --- End of new call logic ---
 
     # Print debug information if verbose mode is enabled
     if debug or verbose:
+        # Pass the placeholder gpt_param for printing context
         print_run_prompts(prompt_template, persona, gpt_param,
                           prompt_input, prompt, output)
 
-    # Return the cleaned output (should be the hour string) and debug info
-    return output, [output, prompt, gpt_param, prompt_input, fail_safe]
+    # Return the final output (should be the hour integer) and debug info
+    final_output = output # Already an integer from cleanup/validation or failsafe
+
+    return final_output, [final_output, prompt, gpt_param, prompt_input, fail_safe]
 
 # --- Function using Chat Completion API (via _OLD wrapper) ---
 # No gpt_param changes needed here as it uses ChatGPT_safe_generate_response_OLD
