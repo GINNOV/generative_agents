@@ -27,6 +27,89 @@ from utils import (key_type,
                    DEFAULT_OPENAI_COMPLETION_MODEL, DEFAULT_AZURE_COMPLETION_MODEL, DEFAULT_GEMINI_COMPLETION_MODEL)
 from metrics import metrics # Make sure metrics is imported if used
 
+# Configure basic logging to see errors from the parser
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def parse_llm_json_list_output(raw_llm_output: str) -> list | None:
+    """
+    Parses JSON list output from an LLM response, handling potential leading/trailing text
+    and whitespace.
+
+    Args:
+        raw_llm_output: The raw string response from the LLM.
+
+    Returns:
+        The parsed list if successful, None otherwise.
+    """
+    log_func = logging.error if logging.getLogger().hasHandlers() else print # Use logging or print
+
+    if not raw_llm_output:
+        log_func("Received empty LLM output.")
+        return None
+
+    try:
+        # Find the first '[' character which should start the JSON list
+        json_start_index = raw_llm_output.find('[')
+
+        if json_start_index == -1:
+            # If '[' is not found, log the unexpected output and fail
+            log_func(f"Could not find start of JSON list ('[') in LLM output: {raw_llm_output[:200]}...")
+            return None
+
+        # Slice from the first '[' onwards to find the matching ']'
+        slice_for_bracket_search = raw_llm_output[json_start_index:]
+        brace_level = 0
+        json_end_index_in_slice = -1
+        for i, char in enumerate(slice_for_bracket_search):
+            if char == '[':
+                brace_level += 1
+            elif char == ']':
+                brace_level -= 1
+                if brace_level == 0:
+                    json_end_index_in_slice = i + 1
+                    break
+
+        if json_end_index_in_slice == -1:
+            log_func(f"Could not find matching end bracket (']') for JSON list in LLM output slice: {slice_for_bracket_search[:200]}...")
+            # Consider trying to parse anyway, maybe json.loads handles some trailing junk
+            json_string_slice = slice_for_bracket_search
+            # return None # Stricter: fail if no closing bracket found
+        else:
+             # Calculate the end index relative to the original string
+             json_end_index = json_start_index + json_end_index_in_slice
+             # Slice the original string using start and calculated end index
+             json_string_slice = raw_llm_output[json_start_index:json_end_index]
+
+
+        # *** THE KEY CHANGE IS HERE: .strip() ***
+        # Remove leading/trailing whitespace (like newlines) from the extracted slice
+        json_string = json_string_slice.strip()
+
+        if not json_string: # Handle case where stripping results in empty string
+             log_func(f"Empty string after slicing and stripping LLM output. Original snippet: {raw_llm_output[json_start_index:json_start_index+200]}...")
+             return None
+
+        # Attempt to parse the cleaned, sliced string
+        parsed_json = json.loads(json_string)
+
+        # Optional: Check if the result is actually a list
+        if not isinstance(parsed_json, list):
+             log_func_warn = logging.warning if logging.getLogger().hasHandlers() else print
+             log_func_warn(f"Parsed JSON is not a list as expected: {type(parsed_json)}")
+             return None # Or return parsed_json if other types are acceptable
+
+        return parsed_json
+
+    except json.JSONDecodeError as e:
+        log_func(f"JSONDecodeError parsing LLM output: {e}")
+        # Log the string that actually caused the error (after slicing and stripping)
+        log_func(f"Problematic JSON string: '{json_string[:200]}...'")
+        return None
+    except Exception as e:
+        # Catch any other unexpected errors during processing
+        log_func(f"Unexpected error parsing LLM JSON output: {type(e).__name__} - {e}")
+        log_func(f"Original raw output snippet: {raw_llm_output[:200]}...")
+        return None
 
 
 def get_random_alphanumeric(i=6, j=6):
@@ -178,16 +261,30 @@ def run_gpt_prompt_daily_plan(persona,
 
     # ... (__func_clean_up needs careful check for JSON format) ...
     def __func_clean_up(gpt_response, prompt=""):
-        # Remove ```json and code fences, and the json extraction
-        gpt_response = gpt_response.replace("```json", "").replace("```", "").strip()
-        print(f"GPT Response After Trimming:{gpt_response}")
-        try:
-            json_data = json.loads(gpt_response)
-            assert isinstance(json_data, list), "run_gpt_prompt_daily_plan -> gpt_response should be a list"
-            return json_data
-        except Exception as e:
-             print(f"ERROR Cleaning JSON: {e}, gpt: {gpt_response}")
+        # This function now calls the robust parser
+        # Use logging if available, otherwise print for debugging the raw response
+        log_func_debug = logging.debug if logging.getLogger().hasHandlers() else print
+        log_func_error = logging.error if logging.getLogger().hasHandlers() else print
+
+        # log_func_debug(f"Raw GPT Response Before Parsing:{gpt_response}") # Optional: Uncomment for verbose debug
+
+        # Call the robust parser function (defined elsewhere in the file)
+        parsed_data = parse_llm_json_list_output(gpt_response)
+
+        if parsed_data is None:
+            # Parsing failed, log the error and return empty list to signify failure
+            log_func_error(f"JSON Parsing Failed (returned None) for response snippet: {gpt_response[:200]}...")
+            return [] # Return empty list on failure
+
+        # Ensure it's a list (already checked in parser, but double-check)
+        if not isinstance(parsed_data, list):
+             log_func_error(f"Parsed data is not a list: {type(parsed_data)}")
              return []
+
+        # Log success if needed
+        # log_func_debug(f"Successfully parsed daily plan with {len(parsed_data)} activities.")
+        return parsed_data # Return the successfully parsed list
+
 
     # ... (__func_validate checks cleanup) ...
     def __func_validate(gpt_response, prompt=""):
