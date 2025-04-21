@@ -1,74 +1,91 @@
-aiohttp==3.8.3
-aiosignal==1.3.1
-asgiref==3.5.2
-async-generator==1.10
-async-timeout==4.0.2
-attrs==22.2.0
-boto==2.49.0
-botocore==1.29.43
-certifi==2021.10.8
-charset-normalizer==2.0.12
-click==8.0.3
-cycler==0.11.0
-dj-database-url==0.5.0
-Django==2.2
-django-cors-headers==2.5.3
-django-storages-redux==1.3.3
-exceptiongroup==1.1.0
-frozenlist==1.3.3
-gensim==3.8.0
-gunicorn==20.1.0
-h11==0.14.0
-idna==3.3
-importlib-metadata==4.8.2
-jmespath==1.0.1
-joblib>=1.1.1
-kiwisolver==1.4.4
-matplotlib==3.7.2
-multidict==6.0.4
-nltk==3.6.5
-numpy==1.25.2
-google-generativeai>=0.3.1
-outcome==1.2.0
-packaging==23.0
-pandas==2.0.3
-patsy==0.5.3
-Pillow==8.4.0
-psycopg2-binary==2.9.5
-pycparser==2.21
-pyparsing==3.0.6
-PySocks==1.7.1
-python-dateutil==2.8.2
-pytz==2021.3
-regex==2021.11.10
-requests==2.26.0
-s3transfer==0.6.0
-scikit-learn==1.3.0
-scikit-posthocs==0.7.0
-scipy==1.11.1
-seaborn==0.12.2
-selenium==4.8.2
-six==1.16.0
-sklearn==0.0
-smart-open==5.2.1
-sniffio==1.3.0
-sortedcontainers==2.4.0
-sqlparse==0.4.3
-statsmodels==0.13.5
-threadpoolctl==3.0.0
-tqdm==4.62.3
-trio==0.22.0
-trio-websocket==0.9.2
-trueskill==0.4.5
-typing-extensions==4.0.0
-urllib3==1.26.7
-wsproto==1.2.0
-yarl==1.8.2
-yellowbrick==1.5
-zipp==3.6.0
-numpy
-scipy
-scikit-learn
-python-dotenv
-openai==<1.0.0
-google-generativeai
+# --- Asynchronous Networking ---
+aiohttp==3.8.3          # Asynchronous HTTP Client/Server framework (often used with asyncio)
+aiosignal==1.3.1        # Library for managing signals in asyncio applications (dependency of aiohttp)
+async-generator==1.10   # Utilities for asynchronous generators (dependency)
+async-timeout==4.0.2    # Timeout context manager for asyncio (dependency of aiohttp)
+frozenlist==1.3.3       # A list-like structure which implements collections.abc.MutableSequence (dependency of aiohttp)
+multidict==6.0.4        # Dictionary-like structure for multiple values per key (dependency of aiohttp)
+yarl==1.8.2             # Yet Another URL library (dependency of aiohttp)
+
+# --- WSGI Server ---
+gunicorn==20.1.0        # WSGI HTTP Server for UNIX (commonly used to deploy Django apps)
+
+# --- Django Framework & Related ---
+Django==2.2             # The web framework itself
+# WARNING: Django 2.2 is very old and unsupported - at some point needs upgrade to 4.x or 5.x
+asgiref==3.5.2          # ASGI specification compatibility library (used by Django for async features)
+dj-database-url==0.5.0  # Utility to configure Django database from a URL string (e.g., in environment variables)
+django-cors-headers==2.5.3 # Handles Cross-Origin Resource Sharing (CORS) headers for Django
+django-storages-redux==1.3.3 # Collection of custom storage backends for Django (e.g., S3)
+sqlparse==0.4.3         # Non-validating SQL parser (used by Django debug toolbar, etc.)
+
+# --- Database ---
+psycopg2-binary==2.9.5  # PostgreSQL adapter for Python (binary version, easier install)
+
+# --- AWS / S3 ---
+boto==2.49.0            # Older AWS SDK for Python (likely for S3 via django-storages or direct use) - Consider boto3 if starting new
+botocore==1.29.43       # Low-level interface to AWS services (dependency of boto3/s3transfer, possibly used by boto too)
+jmespath==1.0.1         # Query language for JSON (dependency of botocore)
+s3transfer==0.6.0       # Library for managing S3 transfers (dependency of boto3, possibly used by django-storages)
+
+# --- Data Science, Machine Learning, NLP ---
+gensim==3.8.0           # Topic modelling and natural language processing library
+joblib>=1.1.1           # Utilities for saving/loading Python objects, parallel computing (used by scikit-learn)
+matplotlib==3.7.2       # Plotting library for creating static, animated, and interactive visualizations
+nltk==3.6.5             # Natural Language Toolkit (text processing, analysis)
+numpy==1.25.2           # Fundamental package for numerical computing in Python
+pandas==2.0.3           # Data manipulation and analysis library (DataFrames)
+patsy==0.5.3            # Library for describing statistical models (dependency of statsmodels)
+scikit-learn==1.3.0     # Comprehensive library for machine learning
+scikit-posthocs==0.7.0  # Statistical post-hoc tests
+scipy==1.11.1           # Library for scientific and technical computing (builds on NumPy)
+seaborn==0.12.2         # Statistical data visualization library (based on matplotlib)
+statsmodels==0.13.5     # Library for estimating and testing statistical models
+threadpoolctl==3.0.0    # Utilities to control thread pools (dependency for scikit-learn, scipy)
+yellowbrick==1.5        # Visual analysis and diagnostic tools for machine learning (integrates with scikit-learn)
+sentence-transformers   # Added for local sentence embeddings (e.g., all-MiniLM-L6-v2)
+
+# --- LLM / Generative AI ---
+google-generativeai>=0.3.1 # Google Generative AI SDK (for Gemini, etc.)
+openai<1.0.0          # OpenAI SDK (for GPT models) - Pinned below 1.0.0 due to breaking changes in v1.x
+# ollama                # Optional: Uncomment if using the ollama python client for local Llama interaction
+
+# --- Image Processing ---
+Pillow==8.4.0           # Python Imaging Library (Fork) - Image manipulation
+
+# --- Web Automation / Testing ---
+selenium==4.8.2         # Browser automation framework
+
+# --- General Utilities & Core Libraries ---
+attrs==22.2.0           # Package for writing classes without boilerplate
+certifi==2021.10.8      # Provides Mozilla's CA Bundle (for SSL verification)
+charset-normalizer==2.0.12 # Character set detection library (dependency of requests)
+click==8.0.3            # Package for creating command-line interfaces (dependency of nltk, maybe others)
+cycler==0.11.0          # Composable style cycles (dependency of matplotlib)
+exceptiongroup==1.1.0   # Backport of PEP 654 Exception Groups (dependency, e.g., for trio)
+h11==0.14.0             # HTTP/1.1 protocol library (dependency for async web clients/servers)
+idna==3.3               # Internationalized Domain Names in Applications (dependency of requests, etc.)
+importlib-metadata==4.8.2 # Library for accessing package metadata (dependency)
+kiwisolver==1.4.4       # Efficient constraint solver (dependency of matplotlib)
+outcome==1.2.0          # Library for representing function outcomes (success/failure) (dependency of trio)
+packaging==23.0         # Core utilities for Python packages (version parsing, etc.)
+pycparser==2.21         # C parser in Python (dependency of cffi, which might be a sub-dependency)
+pyparsing==3.0.6        # General parsing module (dependency of matplotlib, packaging)
+PySocks==1.7.1          # SOCKS proxy client library (dependency of trio-websocket)
+python-dateutil==2.8.2  # Extensions to the standard datetime module
+python-dotenv           # Reads key-value pairs from a .env file and sets them as environment variables
+pytz==2021.3            # World timezone definitions for Python
+regex==2021.11.10       # Alternative regular expression module with more features (used by nltk)
+requests==2.26.0        # Simple HTTP library for Python
+six==1.16.0             # Python 2 and 3 compatibility library (used by many older packages)
+smart-open==5.2.1       # Utils for streaming data from S3, GCS, HDFS, etc. (dependency of gensim)
+sniffio==1.3.0          # Library to detect which async library is running (dependency of trio, httpcore)
+sortedcontainers==2.4.0 # Fast implementation of sorted list, dict, set types (dependency of trio)
+tqdm==4.62.3            # Fast, extensible progress bar for loops and CLI
+trio==0.22.0            # Library for structured concurrency in async Python
+trio-websocket==0.9.2   # WebSocket client/server library for Trio
+trueskill==0.4.5        # Rating system algorithm implementation (e.g., for games)
+typing-extensions>=4.2.0 # Backported and experimental type hints
+urllib3==1.26.7         # Powerful HTTP client library (dependency of requests, botocore)
+wsproto==1.2.0          # WebSocket protocol implementation (dependency of trio-websocket)
+zipp==3.6.0             # Path objects for zip files (backport/dependency of importlib-metadata)

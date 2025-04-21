@@ -13,8 +13,13 @@
 
 more details specific to this environment can be found [here](./docs/changelog.md).
 
-
 ## Preparation
+1. cd to the root e.g. `gem-Generative-Agents/`
+2. run `pip install -r requirements.txt`
+3. cd to folder `gem-Generative-Agents/GA/reverie/backend_server`
+4. configure based on which model you want to leverage (see below)
+5. make a short run to test things `clear & python reverie_offline.py -o base_the_ville_isabella_maria_klaus -t cippa_person -s 50`
+
 If you plan to use [LLama](./docs/llama.md) or Gemini Flash there's a read me that specifically gives guidance on those. Either way you either set environment variables or directly modify `utils.py` file that contains your LLM API key. then install the necessary packages.
 
 ### STEP 1: Update Utils File
