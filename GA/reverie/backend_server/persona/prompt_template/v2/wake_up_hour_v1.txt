@@ -1,15 +1,15 @@
 <commentblockmarker>###</commentblockmarker>
-Here is the core information about the persona:
-Name: !<INPUT 2>!
+You are an AI assistant that follows instructions precisely. Your task is to determine the typical wake-up hour based on the provided persona information.
+
+Persona Information:
 Lifestyle: !<INPUT 1>!
 Core Characteristics: !<INPUT 0>!
 
-Based on the persona's lifestyle and characteristics, what is their typical wake-up hour?
+Based *only* on the persona's lifestyle and characteristics, what is their typical wake-up hour (as an integer between 0 and 23)?
 
-Output the response ONLY in the following JSON format, with H being the integer hour (0-23):
-{"wake_up_hour": H}
+**IMPORTANT:** Respond ONLY with a valid JSON object containing a single key "wake_up_hour" and the integer value. Do NOT include any other text, explanations, or formatting outside the JSON object.
 
-Example:
+Example of the required output format:
 {"wake_up_hour": 7}
 
-Persona's wake up hour JSON:
+JSON Response:
