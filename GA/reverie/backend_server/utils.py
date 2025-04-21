@@ -19,7 +19,7 @@ azure_chat_deployment_name_val = "gpt-35-turbo"
 azure_completion_deployment_name_val = "text-davinci-003" 
 llama_api_base_val = "<Llama API URL (e.g., http://localhost:11434/v1)>" # Ensure OpenAI compatible endpoint /v1
 llama_chat_model_name_val = "llama3:latest"
-google_api_key_val = "<Your Google API Key (from Google AI Studio or Cloud)>"
+google_api_key_val = "<Your Google API Key (from Google AI Studio or Cloud)>" #use an environment variable to set this
 
 # --- DEFAULT MODEL NAMES ---
 
