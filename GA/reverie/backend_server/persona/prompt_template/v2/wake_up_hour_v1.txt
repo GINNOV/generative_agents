@@ -1,12 +1,15 @@
-wake_up_hour_v1.txt
-
-Variables: 
-!<INPUT 0>! -- Identity Stable Set
-!<INPUT 1>! -- Lifestyle
-!<INPUT 2>! -- Persona first names
-
 <commentblockmarker>###</commentblockmarker>
-!<INPUT 0>!
+Here is the core information about the persona:
+Name: !<INPUT 2>!
+Lifestyle: !<INPUT 1>!
+Core Characteristics: !<INPUT 0>!
 
-In general, !<INPUT 1>!
-!<INPUT 2>!'s wake up hour:
+Based on the persona's lifestyle and characteristics, what is their typical wake-up hour?
+
+Output the response ONLY in the following JSON format, with H being the integer hour (0-23):
+{"wake_up_hour": H}
+
+Example:
+{"wake_up_hour": 7}
+
+Persona's wake up hour JSON:
