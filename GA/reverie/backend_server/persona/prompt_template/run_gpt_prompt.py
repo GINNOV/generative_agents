@@ -3137,7 +3137,7 @@ def run_gpt_generate_iterative_chat_utt(maze, init_persona, target_persona, retr
     output = ChatGPT_safe_generate_response_OLD(prompt, 3, fail_safe,
                                                 __chat_func_validate, __chat_func_clean_up, verbose)
 
-    if debug or verbose: print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+    if debug or verbose: print_run_prompts(prompt_template, init_persona, gpt_param, prompt_input, prompt, output)
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
