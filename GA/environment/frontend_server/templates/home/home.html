@@ -4,76 +4,106 @@
 {% block content %}
 <br>
 <br>
-<div>
-	<div id="game-container" style="text-align: center"></div>
+<div style="width:65%; margin: 0 auto; margin-top:1.5em"> {# Increased width slightly #}
 
-	<div style="width:55%; margin: 0 auto; margin-top:4.5em">
-		<h3 style="margin-bottom:-0.5em; font-size:1.5em">Current Time:</h3>
-		<div class="row">
-			<div class="col-md-8" id="game-time" style="">
-				<h2><span id="game-time-content"></span></h2> 
-			</div>
-			<div class="col-md-4">
-				
-				<h2 style="text-align: right; {% if mode == 'simulate' %} display: none {% endif %}">
-					<button id="play_button" type="button" class="btn btn-default">
-				    <strong style=" font-size:1.2em"><i class="glyphicon glyphicon-play"></i> &nbsp;Play</strong>
-				  </button>
-				  
-				  <button id="pause_button" type="button" class="btn btn-default">
-				    <strong style=" font-size:1.2em"><i class="glyphicon glyphicon-pause"></i> &nbsp;Pause</strong>
-				  </button>
-
-				</h2>
-				
-			</div>
-		</div>
-
-		<br>
-		<hr style="border-color:#999999">
-		<br>
-
-		{% for p_name, p_name_os in persona_names %}
-			<div class="media" style="background-color:#EEEEEE; padding:1em; padding-left:3.5em; padding-right:2em; border-radius:10px">
-			  <div class="media-left media-middle">
-			    <a href="#">
-			      <img class="media-object" src="{% static 'img/atlas.png' %}" style="width:5em">
-			    </a>
-			  </div>
-			  <div class="media-body" style='padding-left:3em; padding-top:0.5em; padding-bottom:1em'>
-			  	<div class="row">
-			    	<h2 class="col-md-8" id="name__{{ p_name_os }}" style="margin-bottom:0.8em; font-size:1.85em; ">
-			    		{{p_name}} &nbsp;&nbsp;
-			    		<a href="{% url 'replay_persona_state' sim_code step p_name_os %}" style="font-size:0.6em">State Details</a>
-			    	</h2>
-			    </div>
-			    <div style="">
-					  <p style="font-size:1.2em"><strong>Current Action:</strong> <br><span id="current_action__{{ p_name_os }}"></span></p>
-					  <p style="font-size:1.2em"><strong>Location:</strong> <br><span id="target_address__{{ p_name_os }}"></span></p>
-					  <p style="font-size:1.2em"><strong>Current Conversation:</strong> <br><span id="chat__{{ p_name_os }}"></span></p>
-					</div>
-			  </div>
-			</div>	
-			<br>
-		{% endfor %}
+    {# --- Live Backend Status --- #}
+    <div class="panel panel-info" style="margin-bottom: 2em;">
+      <div class="panel-heading">
+        <h3 class="panel-title">Live Backend Status</h3>
+      </div>
+      <div class="panel-body">
+        {% if live_backend.running %}
+            <p>✅ Live backend detected for simulation: <strong>{{ live_backend.sim_code }}</strong></p>
+            {# Optionally add a link to the /replay/ view for the live sim #}
+            {# Requires knowing the current step, which might be tricky #}
+            {# <p><a href="{% url 'replay' live_backend.sim_code live_backend.step|default:0 %}">View Live Simulation State (Replay Mode)</a></p> #}
+            <p><em>You can control the live simulation via the backend terminal (`reverie.py`). The frontend might update automatically or require manual refresh depending on setup.</em></p>
+        {% else %}
+            <p>❌ No active backend simulation detected.</p>
+            <p><em>Run <code>python reverie.py</code> in the backend directory to start an interactive simulation session.</em></p>
+        {% endif %}
+      </div>
+    </div>
 
 
+    {# --- Playback Selection --- #}
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <h3 class="panel-title">Playback Recorded Simulations</h3>
+      </div>
+      <div class="panel-body">
+        <h4>Compressed Simulations (Recommended for Playback)</h4>
+        {% if available_compressed_sims %}
+            <ul class="list-group">
+                {% for sim_name in available_compressed_sims %}
+                    <li class="list-group-item">
+                        {{ sim_name }}
+                        <a href="{% url 'demo' sim_name 0 1 %}" class="btn btn-success btn-xs pull-right">
+                            <i class="glyphicon glyphicon-play"></i> Play (Speed 1x)
+                        </a>
+                        {# Add links for other speeds if desired #}
+                        {# <a href="{% url 'demo' sim_name 0 3 %}" class="btn btn-info btn-xs pull-right" style="margin-right: 5px;">Play (Speed 4x)</a> #}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No compressed simulations found in <code>compressed_storage/</code>.</p>
+            <p><em>Run <code>python compress_sim_storage.py &lt;sim_code&gt; &lt;fin_code&gt;</code> after an offline run to create one.</em></p>
+        {% endif %}
 
+        <hr> {# Optional separator #}
 
-		
+        <h4>Uncompressed Simulations (Raw Data)</h4>
+         {% if available_uncompressed_sims %}
+            <ul class="list-group">
+                {% for sim_name in available_uncompressed_sims %}
+                     {# Check if a corresponding compressed version exists #}
+                     {% if sim_name not in available_compressed_sims %}
+                         <li class="list-group-item">
+                             {{ sim_name }}
+                             <span class="text-muted pull-right">(Raw data - consider compressing first)</span>
+                             {# Link to replay view for uncompressed data #}
+                             {# <a href="{% url 'replay' sim_name 0 %}" class="btn btn-warning btn-xs pull-right" style="margin-right: 5px;">View Raw Replay</a> #}
+                         </li>
+                     {% endif %}
+                {% endfor %}
+                 {# Add message if all uncompressed have compressed versions #}
+                 {% if available_uncompressed_sims|length > 0 and available_uncompressed_sims|length == available_compressed_sims|length %}
+                     <p><em>All uncompressed runs appear to have compressed versions available above.</em></p>
+                 {% endif %}
+            </ul>
+        {% else %}
+            <p>No uncompressed simulation runs found in <code>storage/</code> (excluding base folders).</p>
+            <p><em>Run <code>python reverie_offline.py --sim_code &lt;name&gt; --step &lt;num&gt;</code> to generate simulation data.</em></p>
+        {% endif %}
 
-	</div>
+      </div>
+    </div>
+
+    {# --- Remove original content that assumed a single active sim --- #}
+    {#
+    <h3 style="margin-bottom:-0.5em; font-size:1.5em">Current Time:</h3>
+    ... (rest of old time display and persona list) ...
+    #}
+
 </div>
-
-  
-
-
 
 <div style="padding-bottom:15em"> </div>
 
+{# --- Remove the Phaser game container if this is just a launcher page --- #}
+{# <div id="game-container" style="text-align: center"></div> #}
 
-<!-- partial -->
-<script src='https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js'></script>
-{% include 'home/main_script.html' %}
 {% endblock content %}
 
+
+{% block js_content %}
+{# --- Remove the Phaser script includes if not needed on this launcher page --- #}
+{# <script src='https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js'></script> #}
+{# {% include 'home/main_script.html' %} #}
+
+{# Add any JS needed for this launcher page, if any #}
+<script>
+    console.log("Home launcher page loaded.");
+    // Example: Add interactivity if needed later
+</script>
+{% endblock js_content %}
