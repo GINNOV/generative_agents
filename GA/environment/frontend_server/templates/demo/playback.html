@@ -168,9 +168,9 @@
 {# <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> #}
 
 <script src='https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js'></script>
-{# Include the updated main_script.html which contains the slider logic #}
+{# Include the updated playback_script.html which contains the slider logic #}
 {# Pass necessary variables from Django context to the included script #}
-{% include 'demo/main_script.html' with max_step=max_step base_start_datetime_iso=base_start_datetime_iso sec_per_step=sec_per_step initial_step=step initial_speed_multiplier=play_speed persona_names_json=persona_names|safe persona_init_pos_json=persona_init_pos|safe all_movement_json=all_movement|safe %}
+{% include 'demo/playback_script.html' with max_step=max_step base_start_datetime_iso=base_start_datetime_iso sec_per_step=sec_per_step initial_step=step initial_speed_multiplier=play_speed persona_names_json=persona_names|safe persona_init_pos_json=persona_init_pos|safe all_movement_json=all_movement|safe %}
 
 
 <script>

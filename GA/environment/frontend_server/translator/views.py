@@ -212,7 +212,7 @@ def demo(request, sim_code, step, play_speed="2"):
              "sec_per_step": sec_per_step,
              "play_speed": play_speed,
              "mode": "demo"}
-  template = "demo/demo.html"
+  template = "demo/playback.html"
 
   return render(request, template, context)
 
