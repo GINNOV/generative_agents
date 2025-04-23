@@ -1,58 +1,87 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static %} {# Use load static instead of staticfiles #}
 
 {% block content %}
 <br>
 <br>
 <div>
 
-	<div id="game-container" style="text-align: center"></div>
+    {# Phaser Game Container #}
+	<div id="game-container" style="text-align: center; margin: 0 auto; width: 90%; max-width: 1500px; border: 1px solid #ccc; overflow: hidden;">
+        {# Phaser canvas will be inserted here #}
+    </div>
 
-	<div style="width:55%; margin: 0 auto; margin-top:4.5em">
-		<h3 style="margin-bottom:1.5em; font-size:1.5em"><em>This is a pre-computed replay of a simulation.</em></h3>
+	<div style="width:70%; max-width: 1200px; margin: 1em auto;"> {# Wider control area #}
+		<h3 style="margin-bottom:1em; font-size:1.4em"><em>Replay of Simulation: {{ sim_code }}</em></h3>
 
-		
-		<h3 style="margin-bottom:-0.5em; font-size:1.5em">Current Time:</h3>
+		{# --- Time and Playback Controls --- #}
 		<div class="row">
-			<div class="col-md-8" id="game-time" style="">
-				<h2><span id="game-time-content"></span></h2> 
+			<div class="col-md-5" id="game-time" style="">
+				<h4 style="margin-bottom:0.2em; font-size:1.2em">Current Time:</h4>
+				<h4><span id="game-time-content">Loading...</span></h4>
 			</div>
-			<div class="col-md-4">
-				<h2 style="text-align: right; {% if mode == 'simulate' %} display: none {% endif %}">
-					<button id="play_button" type="button" class="btn btn-default">
-				    <strong style=" font-size:1.2em"><i class="glyphicon glyphicon-play"></i> &nbsp;Play</strong>
+			<div class="col-md-7">
+				<div style="text-align: right;"> {# Group buttons #}
+				  {# Play/Pause Buttons #}
+				  <button id="play_button" type="button" class="btn btn-success btn-sm">
+				    <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Play
 				  </button>
-				  
-				  <button id="pause_button" type="button" class="btn btn-default">
-				    <strong style=" font-size:1.2em"><i class="glyphicon glyphicon-pause"></i> &nbsp;Pause</strong>
+				  <button id="pause_button" type="button" class="btn btn-warning btn-sm">
+				    <span class="glyphicon glyphicon-pause" aria-hidden="true"></span> Pause
 				  </button>
-				</h2>
+                  <br class="visible-xs" style="margin-top: 5px;">
+				  {# Step Buttons #}
+                  <button id="back_button" type="button" class="btn btn-default btn-sm" style="margin-left: 10px;">
+				    <span class="glyphicon glyphicon-step-backward" aria-hidden="true"></span> Back
+				  </button>
+                  <button id="forward_button" type="button" class="btn btn-default btn-sm">
+				    <span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span> Forward
+				  </button>
+                  {# Speed Buttons #}
+                  <div class="btn-group" role="group" style="margin-left: 10px;">
+                      <button type="button" class="btn btn-default btn-sm speed-button" data-speed="1">1x</button>
+                      <button type="button" class="btn btn-default btn-sm speed-button active" data-speed="2">2x</button>
+                      <button type="button" class="btn btn-default btn-sm speed-button" data-speed="4">8x</button>
+                      <button type="button" class="btn btn-default btn-sm speed-button" data-speed="5">16x</button>
+                  </div>
+				</div>
 			</div>
 		</div>
+
+        {# --- Timeline Slider --- #}
+        <div class="row" style="margin-top: 1em;">
+            <div class="col-md-12">
+                <label for="timeline_slider">Timeline (Step: <span id="slider_step_label">{{ step }}</span> / {{ max_step }})</label>
+                <input type="range" id="timeline_slider" name="timeline"
+                       min="0" max="{{ max_step }}" value="{{ step }}"
+                       style="width: 100%; cursor: pointer;">
+            </div>
+        </div>
+        {# --- End Timeline Slider --- #}
 
 		<br>
 		<hr style="border-color:#999999">
 		<br>
 
+        {# --- Persona Selection Buttons --- (Corrected Image Path using underscore) --- #}
 		<div class="row">
-			<div class="col-md-12" style="border:solid; padding:2em; border-radius: 15px">
+			<div class="col-md-12" style="border:solid 1px #ccc; padding:1em; border-radius: 15px">
 				<div class="row" style="">
 				{% for p in persona_names %}
-					<div class="col-md-2 col-sm-2" style="text-align:center; margin-bottom:0.8em;" >
-						<a href="#" id="on_screen_det_trigger-{{p.underscore}}">
+					<div class="col-lg-2 col-md-3 col-sm-4 col-xs-6" style="text-align:center; margin-bottom:0.8em;" >
+						<a href="#" id="on_screen_det_trigger-{{p.underscore}}" class="persona-selector-link" data-persona-id="{{p.underscore}}">
 							<div class="row" style="padding:0">
-								<div class="col-md-4" id="on_screen_det_trigger_container-{{p.underscore}}" style="text-align:center; padding:0; padding-top:0.3em">
-									{% with 'assets/characters/profile/'|add:p.underscore|add:'.png' as image_static %}
-									<img src="{% static image_static %}" style="width:46px; padding:0; "> 
-									{% endwith %}
+								<div class="col-xs-12 persona-selector-box" id="on_screen_det_trigger_container-{{p.underscore}}" style="text-align:center; padding:0.3em; border-radius: 10px;">
+									{# --- Corrected Path: Use underscore name --- #}
+                                    {% static 'assets/characters/'|add:p.underscore|add:'.png' as atlas_image %}
+                                    <img src="{{ atlas_image }}" style="width:46px; height: auto; padding:0; object-fit: contain;" alt="{{ p.initial }}"
+                                         onerror="this.onerror=null; this.src='{% static 'assets/characters/placeholder.png' %}';"> {# Added placeholder fallback #}
 									<br>
-									{{ p.initial }}
+									<span style="font-weight: bold;">{{ p.initial }}</span>
 								</div>
-								<div class="col-md-8" style="padding-top:0.5em; ">
-									<span style="font-size:1.5em" id="quick_emoji-{{p.underscore}}"></span>
-								</div>
+								{# --- REMOVED Emoji Span from this row --- #}
 							</div>
-					  </a>
+					    </a>
 					</div>
 				{% endfor %}
 				</div>
@@ -60,96 +89,141 @@
 		</div>
 		<br>
 
-		<div class="media" id="on_screen_det_content-init" style="background-color:#EEEEEE; padding:1em; padding-left:3.5em; padding-right:2em; border-radius:10px; ">
-		  <div class="media-left media-middle">
-		    <em>Click on one of the character sprites to see its current state in more detail. </em>
+        {# --- Persona Detail Display --- #}
+		<div class="media" id="on_screen_det_content-init" style="background-color:#f9f9f9; padding:1em; padding-left:3.5em; padding-right:2em; border-radius:10px; border: 1px solid #eee;">
+		  <div class="media-body media-middle">
+		    <em>Click on one of the character icons above to see its current state in more detail.</em>
 		  </div>
-		</div>	
-
+		</div>
 
 		{% for p in persona_names %}
-			<div class="media" id="on_screen_det_content-{{p.underscore}}" style="background-color:#EEEEEE; padding:1em; padding-left:3.5em; padding-right:2em; border-radius:10px; display: none;">
+			<div class="media persona-detail-panel" id="on_screen_det_content-{{p.underscore}}" style="background-color:#f9f9f9; padding:1em; padding-left:3.5em; padding-right:2em; border-radius:10px; display: none; border: 1px solid #eee;">
 			  <div class="media-left media-middle">
 			    <a href="#">
-			    	{% with 'assets/characters/profile/'|add:p.underscore|add:'.png' as image_static %}
-						<img src="{% static image_static %}" style="width:5em"> 
-						{% endwith %}
-			    </a>
+                    {# --- Corrected Path: Use underscore name --- #}
+                    {% static 'assets/characters/'|add:p.underscore|add:'.png' as atlas_image %}
+						<img src="{{ atlas_image }}" style="width:5em; height: auto; object-fit: contain;" alt="{{ p.original }}"
+                             onerror="this.onerror=null; this.src='{% static 'assets/characters/placeholder.png' %}';"> {# Added placeholder fallback #}
+				</a>
 			  </div>
 			  <div class="media-body" style='padding-left:3em; padding-top:0.5em; padding-bottom:1em'>
 			  	<div class="row">
-			    	<h2 class="col-md-8" id="name__{{ p.underscore }}" style="margin-bottom:0.8em; font-size:1.85em; ">
+			    	<h3 class="col-md-8" id="name__{{ p.underscore }}" style="margin-bottom:0.8em; font-size:1.7em; ">
 			    		{{p.original}} &nbsp;&nbsp;
-			    		<a href="{% url 'replay_persona_state' sim_code step p.underscore %}" style="font-size:0.6em">State Details</a>
-			    	</h2>
+			    		{# Link to replay_persona_state view, passing current step #}
+			    		<a href="#" onclick="loadPersonaState('{{ sim_code }}', getCurrentStep(), '{{ p.underscore }}'); return false;" style="font-size:0.7em">State Details</a>
+			    	</h3>
 			    </div>
 			    <div style="">
-					  <p style="font-size:1.2em"><strong>Current Action:</strong> <br><span id="current_action__{{ p.underscore }}"></span></p>
-					  <p style="font-size:1.2em"><strong>Location:</strong> <br><span id="target_address__{{ p.underscore }}"></span></p>
-					  <p style="font-size:1.2em"><strong>Current Conversation:</strong> <br><span id="chat__{{ p.underscore }}"></span></p>
+					  <p style="font-size:1.1em"><strong>Current Action:</strong> <br><span id="current_action__{{ p.underscore }}"></span></p>
+					  <p style="font-size:1.1em"><strong>Location:</strong> <br><span id="target_address__{{ p.underscore }}"></span></p>
+					  <p style="font-size:1.1em"><strong>Current Conversation:</strong> <br><span id="chat__{{ p.underscore }}"></span></p>
 					</div>
 			  </div>
-			</div>	
+			</div>
 		{% endfor %}
 
 
-	</div>
+	</div> {# End main content container #}
 </div>
 
-<div style="margin-top:10em"></div>  
+<div style="margin-top:10em"></div>
+
+{# Modal for Persona State Details #}
+<div class="modal fade" id="personaStateModal" tabindex="-1" role="dialog" aria-labelledby="personaStateModalLabel">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="personaStateModalLabel">Persona State Details</h4>
+      </div>
+      <div class="modal-body" id="personaStateModalBody" style="max-height: 70vh; overflow-y: auto;">
+        Loading...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 
-<div style="display: " id="temp_focus"></div>
-
+{# Hidden div to store temporary focus info if needed by JS #}
+<div style="display: none" id="temp_focus"></div>
 
 
 {% endblock content %}
 
 
 {% block js_content %}
+{# IMPORTANT: Ensure jQuery is loaded BEFORE Bootstrap JS in your base.html or here #}
+{# <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> #}
+{# <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> #}
+
 <script src='https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js'></script>
-{% include 'demo/main_script.html' %}
+{# Include the updated main_script.html which contains the slider logic #}
+{# Pass necessary variables from Django context to the included script #}
+{% include 'demo/main_script.html' with max_step=max_step base_start_datetime_iso=base_start_datetime_iso sec_per_step=sec_per_step initial_step=step initial_speed_multiplier=play_speed persona_names_json=persona_names|safe persona_init_pos_json=persona_init_pos|safe all_movement_json=all_movement|safe %}
+
+
 <script>
-	{% for p in persona_names %}
-		$('#on_screen_det_trigger-{{p.underscore}}').click(function() {
-			$('#on_screen_det_content-init').css({
-		      'display': 'none',
-		    });
-			{% for p_i in persona_names %}
-		    $('#on_screen_det_content-{{p_i.underscore}}').css({
-		      'display': 'none',
-		    });
-		    $('#on_screen_det_trigger-{{p_i.underscore}}').css({
-	      'font-weight': '500',
-		    });
-		    $('#on_screen_det_trigger_container-{{p_i.underscore}}').css({
-		      'background-color': 'white',
-		      'border-radius': '10px'
-		    });
-    	{% endfor %}
+    // --- Persona Selector Logic ---
+    let currentSelectedPersonaBox = null;
+    let currentSelectedPersonaPanel = null;
 
-    	$('#on_screen_det_trigger-{{p.underscore}}').css({
-	      'font-weight': '900',
-	    });
-	    $('#on_screen_det_trigger_container-{{p.underscore}}').css({
-	      'background-color': '#ABFF84',
-	      'border-radius': '10px'
-	    });
-	    $('#on_screen_det_content-{{p.underscore}}').css({
-	      'display': 'block',
-	    });
+	document.querySelectorAll('.persona-selector-link').forEach(link => {
+        link.addEventListener('click', function(event) {
+            event.preventDefault();
+            const personaId = this.dataset.personaId;
+            const targetPanelId = `on_screen_det_content-${personaId}`;
+            const targetBoxId = `on_screen_det_trigger_container-${personaId}`;
+            document.getElementById('on_screen_det_content-init').style.display = 'none';
+            document.querySelectorAll('.persona-detail-panel').forEach(panel => panel.style.display = 'none');
+            document.querySelectorAll('.persona-selector-box').forEach(box => { box.style.backgroundColor = 'white'; box.style.border = 'none'; });
+            document.querySelectorAll('.persona-selector-link').forEach(a => a.style.fontWeight = '500');
+            const targetPanel = document.getElementById(targetPanelId);
+            const targetBox = document.getElementById(targetBoxId);
+            if (targetPanel && targetBox) {
+                targetPanel.style.display = 'block';
+                targetBox.style.backgroundColor = '#ABFF84'; targetBox.style.border = '2px solid #5cb85c';
+                this.style.fontWeight = '900';
+                currentSelectedPersonaBox = targetBox; currentSelectedPersonaPanel = targetPanel;
+                 // Focus camera on selected persona
+                 if (typeof game !== 'undefined' && game.scene.scenes[0] && personas[personaId]) {
+                    game.scene.scenes[0].cameras.main.stopFollow(); // Stop previous follow first
+                    game.scene.scenes[0].cameras.main.startFollow(personas[personaId], true, 0.1, 0.1); // Smooth follow
+                 }
+                 document.getElementById("temp_focus").innerHTML = personaId; // Store focus
+            }
+        });
+    });
 
-	    document.getElementById("temp_focus").innerHTML = "{{p.underscore}}";
+    // --- Persona State Modal Logic ---
+    function loadPersonaState(simCode, step, personaUnderscore) {
+        const stateUrl = `/replay_persona_state/${simCode}/${step}/${personaUnderscore}/`;
+        console.log("Loading state from:", stateUrl);
+        // Ensure jQuery is loaded before using $
+        if (typeof $ !== 'undefined') {
+            $('#personaStateModalBody').html('<p class="text-center"><span class="glyphicon glyphicon-refresh spinning"></span> Loading state details...</p>');
+            $('#personaStateModal').modal('show'); // Assumes Bootstrap JS is loaded
+            $.ajax({
+                url: stateUrl, method: 'GET',
+                success: function(response) { $('#personaStateModalBody').html(response); },
+                error: function(xhr, status, error) {
+                    $('#personaStateModalBody').html(`<div class="alert alert-danger">Error loading persona state: ${error} (${xhr.status})</div>`);
+                    console.error("Error loading persona state:", status, error, xhr.responseText);
+                }
+            });
+        } else {
+            console.error("jQuery not loaded, cannot display persona state modal.");
+            alert("Error: Could not load persona details (jQuery missing).");
+        }
+    }
 
-		});
-	{% endfor %}
+    // Function to get the current step
+    function getCurrentStep() {
+        if (typeof phaserStep !== 'undefined') { return phaserStep; }
+        else { const slider = document.getElementById('timeline_slider'); return slider ? parseInt(slider.value) : 0; }
+    }
 </script>
 {% endblock js_content %}
-
-
-
-
-
-
-
-
