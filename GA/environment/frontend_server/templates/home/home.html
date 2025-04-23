@@ -1,109 +1,127 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static %} {# Use load static instead of staticfiles #}
 
 {% block content %}
 <br>
 <br>
-<div style="width:65%; margin: 0 auto; margin-top:1.5em"> {# Increased width slightly #}
+<div class="container"> {# Use Bootstrap container for better layout #}
+    <div class="row">
+        <div class="col-md-10 col-md-offset-1"> {# Center content #}
 
-    {# --- Live Backend Status --- #}
-    <div class="panel panel-info" style="margin-bottom: 2em;">
-      <div class="panel-heading">
-        <h3 class="panel-title">Live Backend Status</h3>
-      </div>
-      <div class="panel-body">
-        {% if live_backend.running %}
-            <p>✅ Live backend detected for simulation: <strong>{{ live_backend.sim_code }}</strong></p>
-            {# Optionally add a link to the /replay/ view for the live sim #}
-            {# Requires knowing the current step, which might be tricky #}
-            {# <p><a href="{% url 'replay' live_backend.sim_code live_backend.step|default:0 %}">View Live Simulation State (Replay Mode)</a></p> #}
-            <p><em>You can control the live simulation via the backend terminal (`reverie.py`). The frontend might update automatically or require manual refresh depending on setup.</em></p>
-        {% else %}
-            <p>❌ No active backend simulation detected.</p>
-            <p><em>Run <code>python reverie.py</code> in the backend directory to start an interactive simulation session.</em></p>
-        {% endif %}
-      </div>
-    </div>
+            <div class="page-header">
+                <h1>Generative Agents Simulation Interface</h1>
+            </div>
+
+            {# --- Live Backend Status --- #}
+            <div class="panel panel-info" style="margin-bottom: 2em;">
+              <div class="panel-heading">
+                <h3 class="panel-title">Live Backend Status</h3>
+              </div>
+              <div class="panel-body">
+                {% if live_backend.running %}
+                    <p class="text-success">
+                        <span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span>
+                        Live backend detected for simulation: <strong>{{ live_backend.sim_code|default:"(Unknown)" }}</strong>
+                    </p>
+                    {# Optionally add a link to the /replay/ view for the live sim #}
+                    {# Needs reliable step info, which might require backend changes #}
+                    {# {% if live_backend.step is not None %}
+                       <p><a href="{% url 'replay' live_backend.sim_code live_backend.step %}?live=true">View Live Simulation State (Replay Mode)</a></p>
+                    {% endif %} #}
+                    <p><em>You can control the live simulation via the backend terminal (<code>reverie.py</code>). Refresh this page to check status.</em></p>
+                {% else %}
+                    <p class="text-danger">
+                        <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                        No active backend simulation detected.
+                    </p>
+                    <p><em>Run <code>python ../../reverie/backend_server/reverie.py</code> (adjust path if needed) to start an interactive simulation session.</em></p> {# Updated instruction path #}
+                {% endif %}
+              </div>
+            </div>
 
 
-    {# --- Playback Selection --- #}
-    <div class="panel panel-primary">
-      <div class="panel-heading">
-        <h3 class="panel-title">Playback Recorded Simulations</h3>
-      </div>
-      <div class="panel-body">
-        <h4>Compressed Simulations (Recommended for Playback)</h4>
-        {% if available_compressed_sims %}
-            <ul class="list-group">
-                {% for sim_name in available_compressed_sims %}
-                    <li class="list-group-item">
-                        {{ sim_name }}
-                        <a href="{% url 'demo' sim_name 0 1 %}" class="btn btn-success btn-xs pull-right">
-                            <i class="glyphicon glyphicon-play"></i> Play (Speed 1x)
-                        </a>
-                        {# Add links for other speeds if desired #}
-                        {# <a href="{% url 'demo' sim_name 0 3 %}" class="btn btn-info btn-xs pull-right" style="margin-right: 5px;">Play (Speed 4x)</a> #}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No compressed simulations found in <code>compressed_storage/</code>.</p>
-            <p><em>Run <code>python compress_sim_storage.py &lt;sim_code&gt; &lt;fin_code&gt;</code> after an offline run to create one.</em></p>
-        {% endif %}
+            {# --- Playback Selection --- #}
+            <div class="panel panel-primary">
+              <div class="panel-heading">
+                <h3 class="panel-title">Playback Recorded Simulations</h3>
+              </div>
+              <div class="panel-body">
+                <h4>Compressed Simulations (Recommended for Playback)</h4>
+                {% if available_compressed_sims %}
+                    <div class="list-group"> {# Use list-group for better styling #}
+                        {% for sim_name in available_compressed_sims %}
+                            <div class="list-group-item">
+                                <h4 class="list-group-item-heading">{{ sim_name }}</h4>
+                                {# Link to demo view with default step 0, speed 2 #}
+                                <a href="{% url 'demo' sim_name 0 2 %}" class="btn btn-success btn-sm">
+                                    <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Play Demo (Speed 2x)
+                                </a>
+                                {# Add more speed options if needed #}
+                                <a href="{% url 'demo' sim_name 0 1 %}" class="btn btn-info btn-sm" style="margin-left: 5px;">
+                                    <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Play (Speed 1x)
+                                </a>
+                                <a href="{% url 'demo' sim_name 0 4 %}" class="btn btn-info btn-sm" style="margin-left: 5px;">
+                                    <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Play (Speed 8x)
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning" role="alert">
+                        No compressed simulations found in <code>GA/environment/frontend_server/compressed_storage/</code>.
+                        <br><em>Run <code>python ../../reverie/compress_sim_storage.py &lt;sim_code&gt; &lt;fin_code&gt;</code> (adjust path if needed) after an offline run to create one.</em> {# Updated instruction path #}
+                    </div>
+                {% endif %}
 
-        <hr> {# Optional separator #}
+                <hr> {# Optional separator #}
 
-        <h4>Uncompressed Simulations (Raw Data)</h4>
-         {% if available_uncompressed_sims %}
-            <ul class="list-group">
-                {% for sim_name in available_uncompressed_sims %}
-                     {# Check if a corresponding compressed version exists #}
-                     {% if sim_name not in available_compressed_sims %}
-                         <li class="list-group-item">
-                             {{ sim_name }}
-                             <span class="text-muted pull-right">(Raw data - consider compressing first)</span>
-                             {# Link to replay view for uncompressed data #}
-                             {# <a href="{% url 'replay' sim_name 0 %}" class="btn btn-warning btn-xs pull-right" style="margin-right: 5px;">View Raw Replay</a> #}
-                         </li>
-                     {% endif %}
-                {% endfor %}
-                 {# Add message if all uncompressed have compressed versions #}
-                 {% if available_uncompressed_sims|length > 0 and available_uncompressed_sims|length == available_compressed_sims|length %}
-                     <p><em>All uncompressed runs appear to have compressed versions available above.</em></p>
-                 {% endif %}
-            </ul>
-        {% else %}
-            <p>No uncompressed simulation runs found in <code>storage/</code> (excluding base folders).</p>
-            <p><em>Run <code>python reverie_offline.py --sim_code &lt;name&gt; --step &lt;num&gt;</code> to generate simulation data.</em></p>
-        {% endif %}
+                <h4>Uncompressed Simulations (Raw Data)</h4>
+                 {% if available_uncompressed_sims %}
+                    <div class="list-group">
+                        {% for sim_name in available_uncompressed_sims %}
+                             {# Only list if no corresponding compressed version exists #}
+                             {% if sim_name not in available_compressed_sims %}
+                                 <div class="list-group-item">
+                                     <h5 class="list-group-item-heading">{{ sim_name }}</h5>
+                                     <p class="list-group-item-text text-muted">
+                                         (Raw data - consider compressing for better performance)
+                                         {# Optionally link to replay view if it's confirmed to work with raw data #}
+                                         {# <a href="{% url 'replay' sim_name 0 %}" class="btn btn-warning btn-xs pull-right">View Raw Replay</a> #}
+                                     </p>
+                                 </div>
+                             {% endif %}
+                        {% endfor %}
+                         {# Add message if all uncompressed have compressed versions #}
+                         {% with uncompressed_count=available_uncompressed_sims|length compressed_count=available_compressed_sims|length %}
+                            {% if available_uncompressed_sims and uncompressed_count == compressed_count and compressed_count > 0 %} {# Check if list has items and all are compressed #}
+                                 <div class="list-group-item">
+                                     <p class="list-group-item-text text-info"><em>All uncompressed runs appear to have compressed versions available above.</em></p>
+                                 </div>
+                             {% endif %}
+                         {% endwith %}
+                    </div>
+                {% else %}
+                     <div class="alert alert-warning" role="alert">
+                        No uncompressed simulation runs found in <code>GA/environment/frontend_server/storage/</code> (excluding base/public folders).
+                        <br><em>Run <code>python ../../reverie/backend_server/reverie_offline.py --sim_code &lt;name&gt; --step &lt;num&gt;</code> (adjust path if needed) to generate simulation data.</em> {# Updated instruction path #}
+                    </div>
+                {% endif %}
 
-      </div>
-    </div>
-
-    {# --- Remove original content that assumed a single active sim --- #}
-    {#
-    <h3 style="margin-bottom:-0.5em; font-size:1.5em">Current Time:</h3>
-    ... (rest of old time display and persona list) ...
-    #}
-
-</div>
+              </div> {# End panel-body #}
+            </div> {# End panel #}
+        </div> {# End col #}
+    </div> {# End row #}
+</div> {# End container #}
 
 <div style="padding-bottom:15em"> </div>
-
-{# --- Remove the Phaser game container if this is just a launcher page --- #}
-{# <div id="game-container" style="text-align: center"></div> #}
 
 {% endblock content %}
 
 
 {% block js_content %}
-{# --- Remove the Phaser script includes if not needed on this launcher page --- #}
-{# <script src='https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js'></script> #}
-{# {% include 'home/main_script.html' %} #}
-
-{# Add any JS needed for this launcher page, if any #}
+{# No Phaser scripts needed on this launcher page #}
 <script>
     console.log("Home launcher page loaded.");
-    // Example: Add interactivity if needed later
+    // Add any specific JS for this page if needed in the future
 </script>
 {% endblock js_content %}
