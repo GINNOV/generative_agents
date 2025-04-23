@@ -72,17 +72,17 @@
 	let cursors;
 
 	// Persona related variables.
-	var personas = {}; // Stores Phaser sprite objects
-	var pronunciatios = {}; // Stores Phaser text objects for emojis
-	var speech_bubbles = {}; // Stores Phaser image objects for speech bubbles
-	let pre_anims_direction_dict = {}; // Stores last movement direction
+	var personas = {}; // Stores Phaser sprite objects (key: underscore name)
+	var pronunciatios = {}; // Stores Phaser text objects for emojis (key: underscore name)
+	var speech_bubbles = {}; // Stores Phaser image objects for speech bubbles (key: underscore name)
+	let pre_anims_direction_dict = {}; // Stores last movement direction (key: underscore name)
 
 	// Tile and movement variables
 	let tile_width = 32;
     let movement_speed = calculateMovementSpeed(current_play_speed_multiplier); // Use helper function
 	let execute_count_max = Math.max(1, tile_width / movement_speed); // Ensure at least 1
 	let execute_count = execute_count_max; // Counter for smooth tile transition
-	let movement_target = {}; // Stores target pixel coordinates for each persona
+	let movement_target = {}; // Stores target pixel coordinates for each persona (key: underscore name)
 
     let is_playing = false; // Track playback state
 
@@ -155,7 +155,7 @@
       const collisionsTileset = map.addTilesetImage("blocks", "blocks_1");
 
 	  // Create layers
-      const layerNames = [ /* ... (same as before) ... */
+      const layerNames = [
           "Bottom Ground", "Exterior Ground", "Exterior Decoration L1", "Exterior Decoration L2", "Interior Ground", "Wall",
           "Interior Furniture L1", "Interior Furniture L2 ", "Foreground L1", "Foreground L2", "Collisions"
       ];
@@ -164,10 +164,9 @@
           const ts = (name === "Collisions") ? collisionsTileset : tilesets;
           const currentTilesets = Array.isArray(ts) ? ts.filter(t => t !== null) : (ts ? [ts] : []);
           if (currentTilesets.length > 0) {
-               // Use trim() on layer name to handle potential trailing spaces like "Interior Furniture L2 "
-               layers[name] = map.createLayer(name.trim(), currentTilesets, 0, 0);
+               layers[name] = map.createLayer(name, currentTilesets, 0, 0);
                if (!layers[name]) console.warn(`Layer "${name.trim()}" not found or failed to create.`);
-          } else { console.warn(`Tileset for layer "${name.trim()}" not loaded correctly.`); }
+          } else { console.warn(`Tileset for layer "${name}" not loaded correctly.`); }
       });
 
       // Set collisions and depths
@@ -175,7 +174,7 @@
       else { console.warn("Collisions layer not found for setting collision."); }
       if (layers["Foreground L1"]) layers["Foreground L1"].setDepth(2);
       // Use trim() when accessing the layer object as well
-      if (layers["Interior Furniture L2 "]) layers["Interior Furniture L2 "].setDepth(2);
+      if (layers["Interior Furniture L2 "]) layers["Interior Furniture L2 "].setDepth(2); // Use trim() here
 
 
 	  // *** SET UP CAMERA ***
@@ -195,7 +194,7 @@
 	  // *** SET UP PERSONAS ***
 	  persona_names_data.forEach(p => {
           const persona_id = p.underscore; // Key for JS objects (personas, pronunciatios, etc.)
-          const persona_orig_name = p.original; // Key for data lookup
+          // const persona_orig_name = p.original; // Key for data lookup (Not needed here)
           const start_tile = persona_init_pos[persona_id] || [0,0];
           const start_pos_x = start_tile[0] * tile_width + tile_width / 2;
           const start_pos_y = start_tile[1] * tile_width + tile_width;
@@ -272,7 +271,7 @@
     }
     function playSimulation() { /* ... (same as before) ... */ if (phaserStep >= max_step) phaserStep = 0; is_playing = true; console.log("Playback Resumed/Started from step:", phaserStep); execute_count = execute_count_max; }
     function pauseSimulation() { /* ... (same as before, includes stopping anims) ... */
-        is_playing = false; console.log("Playback Paused at step:", phaserStep);
+        is_playing = false;
         persona_names_data.forEach(p => { const persona_id = p.underscore; const curr_persona = personas[persona_id]; if (curr_persona && curr_persona.anims) { curr_persona.anims.stop(); const last_dir = pre_anims_direction_dict[persona_id] || "down"; const idleFrame = last_dir === 'l' ? 'left' : last_dir === 'r' ? 'right' : last_dir === 'u' ? 'up' : 'down'; try { if (game.textures.exists(persona_id) && game.textures.get(persona_id).has(idleFrame)) { curr_persona.setTexture(persona_id, idleFrame); } else if (game.textures.exists(persona_id) && game.textures.get(persona_id).has('down')) { curr_persona.setTexture(persona_id, 'down'); } } catch (e) { console.error(`Error setting texture/frame for ${persona_id}: ${idleFrame}`, e); } } });
     }
     function stepBackward() { /* ... (same as before) ... */ pauseSimulation(); if (phaserStep > 0) { goToStep(phaserStep - 1); } }
@@ -528,10 +527,10 @@
                     // Update bubble/emoji position (Corrected logic from original)
                     if (curr_pronunciatio && curr_speech_bubble) {
                         // Position relative to sprite body (which is offset from sprite x/y)
-                        curr_pronunciatio.x = curr_persona.body.x + curr_persona.body.width / 2 - 6; // Center horizontally relative to body, apply offset
-                        curr_pronunciatio.y = curr_persona.body.y - 42 - 25 + 12; // Position above body, adjust offset (body.y is top of collision box)
-                        curr_speech_bubble.x = curr_persona.body.x + curr_persona.body.width / 2 + 80; // Position relative to body
-                        curr_speech_bubble.y = curr_persona.body.y - 39 + 12; // Position relative to body
+                        curr_pronunciatio.x = curr_persona.body.x - 18;
+                        curr_pronunciatio.y = curr_persona.body.y - 42 - 25;
+                        curr_speech_bubble.x = curr_persona.body.x + 80;
+                        curr_speech_bubble.y = curr_persona.body.y - 39;
                     }
                 } // End if execute_count > 0
 
