@@ -210,7 +210,7 @@
               speech_bubbles[persona_id] = this.add.image(start_pos_x, start_pos_y - 20, 'speech_bubble')
                                                                 .setOrigin(0.5, 1).setDepth(3).setVisible(false);
               speech_bubbles[persona_id].displayWidth = 200; speech_bubbles[persona_id].displayHeight = 75;
-              pronunciatios[persona_id] = this.add.text(start_pos_x - 6, start_pos_y - 20, "",
+              pronunciatios[persona_id] = this.add.text(start_pos_x, start_pos_y - 20, "",
                                            { font: "24px monospace", fill: "#000000", padding: { x: 8, y: 8 }, backgroundColor: "#ffffff" })
                                            .setOrigin(0.5).setDepth(4).setVisible(false); // Use depth 4 to be above bubble
               pre_anims_direction_dict[persona_id] = "down";
@@ -530,7 +530,7 @@
                     // Update bubble/emoji position
                     if (curr_pronunciatio && curr_speech_bubble) {
                         // Position relative to sprite body (which is offset from sprite x/y)
-                        curr_pronunciatio.x = curr_persona.body.x - 70;  // inside bubble
+                        curr_pronunciatio.x = curr_persona.body.x + 70;  // inside bubble
                         curr_pronunciatio.y = curr_persona.body.y - 88; // inside bubble
                         curr_speech_bubble.x = curr_persona.body.x + 80; // Adjusted for bubble
                         curr_speech_bubble.y = curr_persona.body.y - 40; // Adjusted for bubble
