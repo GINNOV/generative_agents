@@ -22,7 +22,11 @@
 			</div>
 			<div class="col-md-7">
 				<div style="text-align: right;"> {# Group buttons #}
-				  {# Play/Pause Buttons #}
+				  {# back to home #}
+            <a href="{% url 'home' %}" id="home_button" class="btn btn-secondary btn-sm">
+              <span class="glyphicon glyphicon-home" aria-hidden="true"></span> HOME
+            </a>
+          {# Play/Pause Buttons #}
 				  <button id="play_button" type="button" class="btn btn-success btn-sm">
 				    <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Play
 				  </button>
@@ -73,9 +77,12 @@
 							<div class="row" style="padding:0">
 								<div class="col-xs-12 persona-selector-box" id="on_screen_det_trigger_container-{{p.underscore}}" style="text-align:center; padding:0.3em; border-radius: 10px;">
 									{# --- Corrected Path: Use underscore name --- #}
-                                    {% static 'assets/characters/'|add:p.underscore|add:'.png' as atlas_image %}
-                                    <img src="{{ atlas_image }}" style="width:46px; height: auto; padding:0; object-fit: contain;" alt="{{ p.initial }}"
-                                         onerror="this.onerror=null; this.src='{% static 'assets/characters/placeholder.png' %}';"> {# Added placeholder fallback #}
+                  {# --- Inside the persona_selector_box div --- #}
+{% comment %} Note the addition of '/profile/' {% endcomment %}
+{% static 'assets/characters/profile/'|add:p.underscore|add:'.png' as profile_image %}
+<img src="{{ profile_image }}" style="width:46px; height: auto; padding:0; object-fit: contain;" alt="{{ p.initial }}"
+     onerror="this.onerror=null; this.src='{% static 'assets/characters/placeholder.png' %}';">
+
 									<br>
 									<span style="font-weight: bold;">{{ p.initial }}</span>
 								</div>
