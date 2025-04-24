@@ -1,3 +1,6 @@
+# frontend requirements
+#
+
 # --- Async / Networking ---
 aiohttp==3.8.3              # Asynchronous HTTP Client/Server framework (often used with Django async views or external requests)
 aiosignal==1.3.1            # Library for managing signals in asyncio applications (dependency of aiohttp)
@@ -17,7 +20,7 @@ wsproto>=1.2.0              # WebSocket protocol implementation (dependency)
 yarl>=1.8.2                 # Yet Another URL library (dependency of aiohttp)
 
 # --- Django & Web Server ---
-Django==2.2                 # The web framework itself (WARNING: Very old version)
+Django>=5.0,<6.0            # The web framework itself
 dj-database-url>=0.5.0      # Utility to configure Django database from a URL string
 django-cors-headers>=2.5.3  # Handles Cross-Origin Resource Sharing (CORS) headers for Django
 gunicorn>=20.1.0            # WSGI HTTP Server for UNIX (commonly used to deploy Django apps)

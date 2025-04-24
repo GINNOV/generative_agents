@@ -49,7 +49,7 @@ except ImportError as e:
     def compress_simulation_script(sim_code, fin_code, storage_dir_base, compressed_dir_base):
         raise NotImplementedError("Compression script could not be imported.")
 
-from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.templatetags.static import static
 # from .models import * # models.py is still likely empty
 
 # Configure logging
