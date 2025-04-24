@@ -12,7 +12,7 @@
                 <h1>Generative Agents Simulation Interface</h1>
             </div>
 
-            {# --- Live Backend Status --- #}
+            {# --- Live Backend Status (No changes needed here) --- #}
             <div class="panel panel-info" style="margin-bottom: 2em;">
               <div class="panel-heading">
                 <h3 class="panel-title">Live Backend Status</h3>
@@ -23,18 +23,13 @@
                         <span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span>
                         Live backend detected for simulation: <strong>{{ live_backend.sim_code|default:"(Unknown)" }}</strong>
                     </p>
-                    {# Optionally add a link to the /replay/ view for the live sim #}
-                    {# Needs reliable step info, which might require backend changes #}
-                    {# {% if live_backend.step is not None %}
-                       <p><a href="{% url 'replay' live_backend.sim_code live_backend.step %}?live=true">View Live Simulation State (Replay Mode)</a></p>
-                    {% endif %} #}
                     <p><em>You can control the live simulation via the backend terminal (<code>reverie.py</code>). Refresh this page to check status.</em></p>
                 {% else %}
                     <p class="text-danger">
                         <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
                         No active backend simulation detected.
                     </p>
-                    <p><em>Run <code>python ../../reverie/backend_server/reverie.py</code> (adjust path if needed) to start an interactive simulation session.</em></p> {# Updated instruction path #}
+                    <p><em>Run <code>python ../../reverie/backend_server/reverie.py</code> (adjust path if needed) to start an interactive simulation session.</em></p>
                 {% endif %}
               </div>
             </div>
@@ -48,15 +43,13 @@
               <div class="panel-body">
                 <h4>Compressed Simulations (Recommended for Playback)</h4>
                 {% if available_compressed_sims %}
-                    <div class="list-group"> {# Use list-group for better styling #}
+                    <div class="list-group">
                         {% for sim_name in available_compressed_sims %}
                             <div class="list-group-item">
                                 <h4 class="list-group-item-heading">{{ sim_name }}</h4>
-                                {# Link to demo view with default step 0, speed 2 #}
                                 <a href="{% url 'demo' sim_name 0 2 %}" class="btn btn-success btn-sm">
                                     <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Play Demo (Speed 2x)
                                 </a>
-                                {# Add more speed options if needed #}
                                 <a href="{% url 'demo' sim_name 0 1 %}" class="btn btn-info btn-sm" style="margin-left: 5px;">
                                     <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Play (Speed 1x)
                                 </a>
@@ -69,41 +62,48 @@
                 {% else %}
                     <div class="alert alert-warning" role="alert">
                         No compressed simulations found in <code>GA/environment/frontend_server/compressed_storage/</code>.
-                        <br><em>Run <code>python ../../reverie/compress_sim_storage.py &lt;sim_code&gt; &lt;fin_code&gt;</code> (adjust path if needed) after an offline run to create one.</em> {# Updated instruction path #}
+                        <br><em>Run <code>python ../../reverie/compress_sim_storage.py &lt;sim_code&gt; &lt;fin_code&gt;</code> (adjust path if needed) after an offline run to create one, or use the Compress button below.</em>
                     </div>
                 {% endif %}
 
                 <hr> {# Optional separator #}
 
-                <h4>Uncompressed Simulations (Raw Data)</h4>
+                <h4>Uncompressed Simulations (Raw Data: storage folder) </h4>
                  {% if available_uncompressed_sims %}
                     <div class="list-group">
                         {% for sim_name in available_uncompressed_sims %}
                              {# Only list if no corresponding compressed version exists #}
-                             {% if sim_name not in available_compressed_sims %}
-                                 <div class="list-group-item">
-                                     <h5 class="list-group-item-heading">{{ sim_name }}</h5>
-                                     <p class="list-group-item-text text-muted">
-                                         (Raw data - consider compressing for better performance)
-                                         {# Optionally link to replay view if it's confirmed to work with raw data #}
-                                         {# <a href="{% url 'replay' sim_name 0 %}" class="btn btn-warning btn-xs pull-right">View Raw Replay</a> #}
-                                     </p>
+                             {# We show all uncompressed now, and add the compress button #}
+                             <div class="list-group-item">
+                                 <h5 class="list-group-item-heading">{{ sim_name }}</h5>
+
+                                 {# --- START: Compression UI --- #}
+                                 {% if sim_name not in available_compressed_sims %}
+                                 <div class="input-group input-group-sm" style="margin-top: 5px; max-width: 400px;">
+                                     <input type="text" class="form-control" placeholder="Compressed Name (e.g., {{ sim_name }}_comp)" id="fin-code-{{ sim_name }}">
+                                     <span class="input-group-btn">
+                                         <button class="btn btn-primary compress-btn" type="button" data-sim-code="{{ sim_name }}">
+                                             <span class="glyphicon glyphicon-compressed" aria-hidden="true"></span> Compress
+                                         </button>
+                                     </span>
                                  </div>
-                             {% endif %}
+                                 <div id="compress-status-{{ sim_name }}" style="margin-top: 5px; font-size: 0.9em;"></div> {# Area for messages #}
+                                 {% else %}
+                                 <p class="list-group-item-text text-success" style="margin-top: 5px;">
+                                     <small><em>(Compressed version available above)</em></small>
+                                 </p>
+                                 {% endif %}
+                                 {# --- END: Compression UI --- #}
+
+                                 <p class="list-group-item-text text-muted" style="margin-top: 5px;">
+                                 </p>
+                             </div>
                         {% endfor %}
-                         {# Add message if all uncompressed have compressed versions #}
-                         {% with uncompressed_count=available_uncompressed_sims|length compressed_count=available_compressed_sims|length %}
-                            {% if available_uncompressed_sims and uncompressed_count == compressed_count and compressed_count > 0 %} {# Check if list has items and all are compressed #}
-                                 <div class="list-group-item">
-                                     <p class="list-group-item-text text-info"><em>All uncompressed runs appear to have compressed versions available above.</em></p>
-                                 </div>
-                             {% endif %}
-                         {% endwith %}
                     </div>
                 {% else %}
                      <div class="alert alert-warning" role="alert">
                         No uncompressed simulation runs found in <code>GA/environment/frontend_server/storage/</code> (excluding base/public folders).
-                        <br><em>Run <code>python ../../reverie/backend_server/reverie_offline.py --sim_code &lt;name&gt; --step &lt;num&gt;</code> (adjust path if needed) to generate simulation data.</em> {# Updated instruction path #}
+                        <br><em>Run <code>python ../../reverie/backend_server/reverie_offline.py --sim_code &lt;name&gt; --step &lt;num&gt;</code> (adjust path if needed) to generate simulation data.</em>
                     </div>
                 {% endif %}
 
@@ -122,6 +122,107 @@
 {# No Phaser scripts needed on this launcher page #}
 <script>
     console.log("Home launcher page loaded.");
-    // Add any specific JS for this page if needed in the future
+
+    // --- START: Compression Button Logic ---
+    document.querySelectorAll('.compress-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const simCode = this.dataset.simCode;
+            const finCodeInput = document.getElementById(`fin-code-${simCode}`);
+            const finCode = finCodeInput.value.trim();
+            const statusDiv = document.getElementById(`compress-status-${simCode}`);
+
+            // Clear previous status message
+            statusDiv.innerHTML = '';
+
+            if (!finCode) {
+                statusDiv.innerHTML = '<span class="text-danger">Please enter a name for the compressed version.</span>';
+                finCodeInput.focus(); // Focus the input field
+                return;
+            }
+
+            // Basic validation (allow letters, numbers, underscore, hyphen)
+            if (!/^[a-zA-Z0-9_-]+$/.test(finCode)) {
+                 statusDiv.innerHTML = '<span class="text-danger">Invalid name. Use only letters, numbers, underscore (_), or hyphen (-).</span>';
+                 finCodeInput.focus();
+                 return;
+            }
+
+            // Disable button during processing
+            this.disabled = true;
+            this.innerHTML = '<span class="glyphicon glyphicon-refresh spinning" aria-hidden="true"></span> Compressing...';
+            statusDiv.innerHTML = '<span class="text-info"><span class="glyphicon glyphicon-refresh spinning"></span> Processing... this might take a minute.</span>'; // Loading indicator
+
+            // Get CSRF token (standard Django way)
+            const csrftoken = getCookie('csrftoken');
+            if (!csrftoken) {
+                console.error("CSRF token not found!");
+                statusDiv.innerHTML = '<span class="text-danger">Error: CSRF token missing. Cannot send request.</span>';
+                this.disabled = false; // Re-enable button
+                this.innerHTML = '<span class="glyphicon glyphicon-compressed" aria-hidden="true"></span> Compress';
+                return;
+            }
+
+            // Make the AJAX call to the backend view
+            fetch("{% url 'compress_simulation' %}", { // Use Django URL tag - MAKE SURE THIS NAME IS IN urls.py
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken // Include CSRF token
+                },
+                body: JSON.stringify({ sim_code: simCode, fin_code: finCode })
+            })
+            .then(response => {
+                // Check if response is ok (status 200-299) before parsing JSON
+                if (!response.ok) {
+                    // Try to get error message from response body if possible
+                    return response.json().then(errData => {
+                        throw new Error(errData.message || `HTTP error! status: ${response.status}`);
+                    }).catch(() => {
+                        // Fallback if response body isn't JSON or doesn't have message
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    });
+                }
+                return response.json(); // Parse JSON body
+            })
+            .then(data => {
+                console.log("Compression response:", data);
+                if (data.status === 'success') {
+                     statusDiv.innerHTML = `<span class="text-success"><span class="glyphicon glyphicon-ok"></span> ${data.message || 'Compression successful! Refresh page to see.'}</span>`;
+                     // Optionally: Refresh page after a delay
+                     setTimeout(() => { window.location.reload(); }, 3000);
+                } else { // Handle errors reported by the backend logic
+                    statusDiv.innerHTML = `<span class="text-danger"><span class="glyphicon glyphicon-remove"></span> Error: ${data.message || 'Unknown error during compression.'}</span>`;
+                }
+            })
+            .catch(error => {
+                console.error('Compression Fetch Error:', error);
+                statusDiv.innerHTML = `<span class="text-danger">⚠️ Incomplete simulation. ${error.message}. Check console for details.</span>`;
+            })
+            .finally(() => {
+                 // Re-enable the button regardless of success or failure
+                 this.disabled = false;
+                 this.innerHTML = '<span class="glyphicon glyphicon-compressed" aria-hidden="true"></span> Compress';
+            });
+        });
+    });
+
+    // Function to get CSRF cookie (standard Django way)
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    // --- END: Compression Button Logic ---
+
 </script>
 {% endblock js_content %}
