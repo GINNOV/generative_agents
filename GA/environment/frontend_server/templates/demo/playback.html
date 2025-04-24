@@ -1,93 +1,91 @@
 {% extends "base.html" %}
-{% load static %} {# Use load static instead of staticfiles #}
+{% load static %} {# Use static, not staticfiles #}
 
 {% block content %}
-<br>
-<br>
-<div>
+{# Define placeholder path once to simplify onerror attribute #}
+{% static 'assets/characters/placeholder.png' as placeholder_img_path %}
+
+<div class="container-fluid mt-3 mb-5"> {# Use fluid container, add margin top/bottom #}
 
     {# Phaser Game Container #}
-	<div id="game-container" style="text-align: center; margin: 0 auto; width: 90%; max-width: 1500px; border: 1px solid #ccc; overflow: hidden;">
+	<div id="game-container" class="mx-auto border overflow-hidden" style="text-align: center; width: 90%; max-width: 1500px;"> {# Centered, border #}
         {# Phaser canvas will be inserted here #}
     </div>
 
-	<div style="width:70%; max-width: 1200px; margin: 1em auto;"> {# Wider control area #}
-		<h3 style="margin-bottom:1em; font-size:1.4em"><em>Replay of Simulation: {{ sim_code }}</em></h3>
+	<div class="mx-auto mt-3" style="width:80%; max-width: 1200px;"> {# Wider control area, margin top #}
+		<h3 class="mb-3 h4"><em>Replay of Simulation: {{ sim_code }}</em></h3> {# Adjusted heading size/margin #}
 
 		{# --- Time and Playback Controls --- #}
-		<div class="row">
-			<div class="col-md-5" id="game-time" style="">
-				<h4 style="margin-bottom:0.2em; font-size:1.2em">Current Time:</h4>
-				<h4><span id="game-time-content">Loading...</span></h4>
+		<div class="row align-items-center mb-3"> {# Align items vertically, margin bottom #}
+			<div class="col-md-5" id="game-time">
+				<h5 class="mb-1">Current Time:</h5> {# Smaller heading #}
+				<h6 id="game-time-content">Loading...</h6>
 			</div>
-			<div class="col-md-7">
-				<div style="text-align: right;"> {# Group buttons #}
-				  {# back to home #}
-            <a href="{% url 'home' %}" id="home_button" class="btn btn-secondary btn-sm">
-              <span class="glyphicon glyphicon-home" aria-hidden="true"></span> HOME
-            </a>
-          {# Play/Pause Buttons #}
-				  <button id="play_button" type="button" class="btn btn-success btn-sm">
-				    <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Play
-				  </button>
-				  <button id="pause_button" type="button" class="btn btn-warning btn-sm">
-				    <span class="glyphicon glyphicon-pause" aria-hidden="true"></span> Pause
-				  </button>
-                  <br class="visible-xs" style="margin-top: 5px;">
-				  {# Step Buttons #}
-                  <button id="back_button" type="button" class="btn btn-default btn-sm" style="margin-left: 10px;">
-				    <span class="glyphicon glyphicon-step-backward" aria-hidden="true"></span> Back
-				  </button>
-                  <button id="forward_button" type="button" class="btn btn-default btn-sm">
-				    <span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span> Forward
-				  </button>
-                  {# Speed Buttons #}
-                  <div class="btn-group" role="group" style="margin-left: 10px;">
-                      <button type="button" class="btn btn-default btn-sm speed-button" data-speed="1">1x</button>
-                      <button type="button" class="btn btn-default btn-sm speed-button active" data-speed="2">2x</button>
-                      <button type="button" class="btn btn-default btn-sm speed-button" data-speed="4">8x</button>
-                      <button type="button" class="btn btn-default btn-sm speed-button" data-speed="5">16x</button>
+			<div class="col-md-7 text-md-end"> {# Align buttons right on medium+ screens #}
+                {# Group buttons logically #}
+                <div class="d-inline-block mb-1 me-md-2"> {# Margin end on medium+, margin bottom #}
+                    <a href="{% url 'home' %}" id="home_button" class="btn btn-secondary btn-sm">
+                      <i class="bi bi-house-door-fill"></i> HOME {# Icon #}
+                    </a>
+                    <button id="play_button" type="button" class="btn btn-success btn-sm ms-1"> {# Margin start #}
+                        <i class="bi bi-play-fill"></i> Play {# Icon #}
+                    </button>
+                    <button id="pause_button" type="button" class="btn btn-warning btn-sm ms-1"> {# Margin start #}
+                        <i class="bi bi-pause-fill"></i> Pause {# Icon #}
+                    </button>
+                </div>
+                 <div class="d-inline-block mb-1 me-md-2"> {# Margin end on medium+, margin bottom #}
+                    <button id="back_button" type="button" class="btn btn-outline-secondary btn-sm"> {# Outline style #}
+                        <i class="bi bi-skip-backward-fill"></i> Back {# Icon #}
+                    </button>
+                    <button id="forward_button" type="button" class="btn btn-outline-secondary btn-sm ms-1"> {# Margin start #}
+                        <i class="bi bi-skip-forward-fill"></i> Forward {# Icon #}
+                    </button>
+                 </div>
+                  {# Speed Buttons - Use radio button styling for better active state #}
+                  <div class="btn-group btn-group-sm mb-1" role="group" aria-label="Playback Speed"> {# Margin bottom #}
+                      <input type="radio" class="btn-check speed-button" name="speedRadio" id="speed1" autocomplete="off" data-speed="1">
+                      <label class="btn btn-outline-secondary" for="speed1">1x</label>
+
+                      <input type="radio" class="btn-check speed-button" name="speedRadio" id="speed2" autocomplete="off" data-speed="2" {% if initial_speed_multiplier == 2 %}checked{% endif %}> {# Set checked based on context #}
+                      <label class="btn btn-outline-secondary" for="speed2">2x</label>
+
+                      <input type="radio" class="btn-check speed-button" name="speedRadio" id="speed4" autocomplete="off" data-speed="4" {% if initial_speed_multiplier == 8 %}checked{% endif %}> {# Use 8 for 4x button? Check data-speed #}
+                      <label class="btn btn-outline-secondary" for="speed4">8x</label>
+
+                      <input type="radio" class="btn-check speed-button" name="speedRadio" id="speed5" autocomplete="off" data-speed="5" {% if initial_speed_multiplier == 16 %}checked{% endif %}> {# Use 16 for 5x button? Check data-speed #}
+                      <label class="btn btn-outline-secondary" for="speed5">16x</label>
                   </div>
-				</div>
 			</div>
 		</div>
 
         {# --- Timeline Slider --- #}
-        <div class="row" style="margin-top: 1em;">
-            <div class="col-md-12">
-                <label for="timeline_slider">Timeline (Step: <span id="slider_step_label">{{ step }}</span> / {{ max_step }})</label>
-                <input type="range" id="timeline_slider" name="timeline"
-                       min="0" max="{{ max_step }}" value="{{ step }}"
-                       style="width: 100%; cursor: pointer;">
+        <div class="row mb-3"> {# Margin bottom #}
+            <div class="col-12">
+                <label for="timeline_slider" class="form-label">Timeline (Step: <span id="slider_step_label">{{ step }}</span> / {{ max_step }})</label>
+                <input type="range" class="form-range" id="timeline_slider" name="timeline" {# Use form-range #}
+                       min="0" max="{{ max_step }}" value="{{ step }}">
             </div>
         </div>
         {# --- End Timeline Slider --- #}
 
-		<br>
-		<hr style="border-color:#999999">
-		<br>
+		<hr class="my-4"> {# Margin top/bottom #}
 
-        {# --- Persona Selection Buttons --- (Corrected Image Path using underscore) --- #}
+        {# --- Persona Selection Buttons --- #}
 		<div class="row">
-			<div class="col-md-12" style="border:solid 1px #ccc; padding:1em; border-radius: 15px">
-				<div class="row" style="">
+			<div class="col-12 border rounded p-3"> {# Border, rounded corners, padding #}
+				<div class="row g-2"> {# Gutters between columns #}
 				{% for p in persona_names %}
-					<div class="col-lg-2 col-md-3 col-sm-4 col-xs-6" style="text-align:center; margin-bottom:0.8em;" >
-						<a href="#" id="on_screen_det_trigger-{{p.underscore}}" class="persona-selector-link" data-persona-id="{{p.underscore}}">
-							<div class="row" style="padding:0">
-								<div class="col-xs-12 persona-selector-box" id="on_screen_det_trigger_container-{{p.underscore}}" style="text-align:center; padding:0.3em; border-radius: 10px;">
-									{# --- Corrected Path: Use underscore name --- #}
-                  {# --- Inside the persona_selector_box div --- #}
-{% comment %} Note the addition of '/profile/' {% endcomment %}
-{% static 'assets/characters/profile/'|add:p.underscore|add:'.png' as profile_image %}
-<img src="{{ profile_image }}" style="width:46px; height: auto; padding:0; object-fit: contain;" alt="{{ p.initial }}"
-     onerror="this.onerror=null; this.src='{% static 'assets/characters/placeholder.png' %}';">
-
-									<br>
-									<span style="font-weight: bold;">{{ p.initial }}</span>
-								</div>
-								{# --- REMOVED Emoji Span from this row --- #}
-							</div>
+					<div class="col-lg-2 col-md-3 col-sm-4 col-6 text-center mb-2"> {# Responsive columns, margin bottom #}
+						<a href="#" class="persona-selector-link d-block p-1 rounded" data-persona-id="{{p.underscore}}" style="text-decoration: none;"> {# Display block, padding, rounded #}
+                            <div class="persona-selector-box" id="on_screen_det_trigger_container-{{p.underscore}}">
+                                {# Reverted to using static tag directly, likely to cause TemplateSyntaxError #}
+                                {% static 'assets/characters/profile/'|add:p.underscore|add:'.png' as profile_image %}
+                                <img src="{{ profile_image }}" class="img-fluid rounded-circle mb-1" style="width:46px; height: 46px; object-fit: cover;" alt="{{ p.initial }}"
+                                     onerror="this.onerror=null; this.src='{{ placeholder_img_path }}';"> {# Use pre-defined variable #}
+                                <br>
+                                <span class="fw-bold small">{{ p.initial }}</span> {# Font weight, small text #}
+                            </div>
 					    </a>
 					</div>
 				{% endfor %}
@@ -97,36 +95,35 @@
 		<br>
 
         {# --- Persona Detail Display --- #}
-		<div class="media" id="on_screen_det_content-init" style="background-color:#f9f9f9; padding:1em; padding-left:3.5em; padding-right:2em; border-radius:10px; border: 1px solid #eee;">
-		  <div class="media-body media-middle">
-		    <em>Click on one of the character icons above to see its current state in more detail.</em>
-		  </div>
+		<div id="on_screen_det_content-init" class="alert alert-secondary p-3" role="alert"> {# Use alert for initial message #}
+		  <em>Click on one of the character icons above to see its current state in more detail.</em>
 		</div>
 
 		{% for p in persona_names %}
-			<div class="media persona-detail-panel" id="on_screen_det_content-{{p.underscore}}" style="background-color:#f9f9f9; padding:1em; padding-left:3.5em; padding-right:2em; border-radius:10px; display: none; border: 1px solid #eee;">
-			  <div class="media-left media-middle">
-			    <a href="#">
-                    {# --- Corrected Path: Use underscore name --- #}
-                    {% static 'assets/characters/'|add:p.underscore|add:'.png' as atlas_image %}
-						<img src="{{ atlas_image }}" style="width:5em; height: auto; object-fit: contain;" alt="{{ p.original }}"
-                             onerror="this.onerror=null; this.src='{% static 'assets/characters/placeholder.png' %}';"> {# Added placeholder fallback #}
-				</a>
-			  </div>
-			  <div class="media-body" style='padding-left:3em; padding-top:0.5em; padding-bottom:1em'>
-			  	<div class="row">
-			    	<h3 class="col-md-8" id="name__{{ p.underscore }}" style="margin-bottom:0.8em; font-size:1.7em; ">
-			    		{{p.original}} &nbsp;&nbsp;
-			    		{# Link to replay_persona_state view, passing current step #}
-			    		<a href="#" onclick="loadPersonaState('{{ sim_code }}', getCurrentStep(), '{{ p.underscore }}'); return false;" style="font-size:0.7em">State Details</a>
-			    	</h3>
-			    </div>
-			    <div style="">
-					  <p style="font-size:1.1em"><strong>Current Action:</strong> <br><span id="current_action__{{ p.underscore }}"></span></p>
-					  <p style="font-size:1.1em"><strong>Location:</strong> <br><span id="target_address__{{ p.underscore }}"></span></p>
-					  <p style="font-size:1.1em"><strong>Current Conversation:</strong> <br><span id="chat__{{ p.underscore }}"></span></p>
-					</div>
-			  </div>
+            {# Use card for persona details #}
+			<div class="card persona-detail-panel mb-3" id="on_screen_det_content-{{p.underscore}}" style="display: none;">
+                <div class="row g-0">
+                    <div class="col-md-2 d-flex align-items-center justify-content-center p-3"> {# Column for image #}
+                        {# Reverted to using static tag directly, likely to cause TemplateSyntaxError #}
+                        {% static 'assets/characters/'|add:p.underscore|add:'.png' as atlas_image %}
+						<img src="{{ atlas_image }}" class="img-fluid rounded" style="max-width: 80px;" alt="{{ p.original }}"
+                             onerror="this.onerror=null; this.src='{{ placeholder_img_path }}';"> {# Use pre-defined variable #}
+                    </div>
+                    <div class="col-md-10"> {# Column for text details #}
+                        <div class="card-body">
+                            <h4 class="card-title" id="name__{{ p.underscore }}">
+                                {{p.original}}
+                                {# Link to trigger modal #}
+                                <a href="#" onclick="loadPersonaState('{{ sim_code }}', getCurrentStep(), '{{ p.underscore }}'); return false;" class="btn btn-outline-info btn-sm ms-2">
+                                     <i class="bi bi-clipboard-data"></i> State Details {# Icon #}
+                                </a>
+                            </h4>
+                            <p class="card-text mb-1"><strong>Current Action:</strong> <br><span id="current_action__{{ p.underscore }}"></span></p>
+                            <p class="card-text mb-1"><strong>Location:</strong> <br><span id="target_address__{{ p.underscore }}"></span></p>
+                            <p class="card-text mb-0"><strong>Current Conversation:</strong> <br><span id="chat__{{ p.underscore }}"></span></p>
+                        </div>
+                    </div>
+                </div>
 			</div>
 		{% endfor %}
 
@@ -134,103 +131,173 @@
 	</div> {# End main content container #}
 </div>
 
-<div style="margin-top:10em"></div>
-
-{# Modal for Persona State Details #}
-<div class="modal fade" id="personaStateModal" tabindex="-1" role="dialog" aria-labelledby="personaStateModalLabel">
-  <div class="modal-dialog modal-lg" role="document">
+{# Modal for Persona State Details (Bootstrap 5 Structure) #}
+<div class="modal fade" id="personaStateModal" tabindex="-1" aria-labelledby="personaStateModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable"> {# Larger, scrollable #}
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="personaStateModalLabel">Persona State Details</h4>
+        <h5 class="modal-title" id="personaStateModalLabel">Persona State Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> {# BS5 close button #}
       </div>
-      <div class="modal-body" id="personaStateModalBody" style="max-height: 70vh; overflow-y: auto;">
-        Loading...
+      <div class="modal-body" id="personaStateModalBody">
+        <div class="text-center"> {# Centered spinner #}
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> {# BS5 dismiss attribute #}
       </div>
     </div>
   </div>
 </div>
 
-
-{# Hidden div to store temporary focus info if needed by JS #}
-<div style="display: none" id="temp_focus"></div>
-
-
 {% endblock content %}
 
 
 {% block js_content %}
-{# IMPORTANT: Ensure jQuery is loaded BEFORE Bootstrap JS in your base.html or here #}
-{# <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> #}
-{# <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> #}
-
+{# Phaser script #}
 <script src='https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js'></script>
+
 {# Include the updated playback_script.html which contains the slider logic #}
 {# Pass necessary variables from Django context to the included script #}
+{# REMOVED STATIC_URL from context #}
 {% include 'demo/playback_script.html' with max_step=max_step base_start_datetime_iso=base_start_datetime_iso sec_per_step=sec_per_step initial_step=step initial_speed_multiplier=play_speed persona_names_json=persona_names|safe persona_init_pos_json=persona_init_pos|safe all_movement_json=all_movement|safe %}
 
 
 <script>
-    // --- Persona Selector Logic ---
+    // --- Persona Selector Logic (BS5 update) ---
     let currentSelectedPersonaBox = null;
     let currentSelectedPersonaPanel = null;
+    let personaStateModalInstance = null; // Store modal instance
 
-	document.querySelectorAll('.persona-selector-link').forEach(link => {
+    document.querySelectorAll('.persona-selector-link').forEach(link => {
         link.addEventListener('click', function(event) {
             event.preventDefault();
             const personaId = this.dataset.personaId;
             const targetPanelId = `on_screen_det_content-${personaId}`;
             const targetBoxId = `on_screen_det_trigger_container-${personaId}`;
+
+            // Hide initial message and all detail panels
             document.getElementById('on_screen_det_content-init').style.display = 'none';
             document.querySelectorAll('.persona-detail-panel').forEach(panel => panel.style.display = 'none');
-            document.querySelectorAll('.persona-selector-box').forEach(box => { box.style.backgroundColor = 'white'; box.style.border = 'none'; });
-            document.querySelectorAll('.persona-selector-link').forEach(a => a.style.fontWeight = '500');
+
+            // Reset styles on all selector boxes/links
+            document.querySelectorAll('.persona-selector-box').forEach(box => {
+                // Reset styles applied to the parent link (<a> tag)
+                const parentLink = box.closest('.persona-selector-link');
+                if (parentLink) {
+                    parentLink.style.backgroundColor = ''; // Remove background highlight
+                    parentLink.style.border = ''; // Remove border
+                    const span = parentLink.querySelector('span');
+                    if (span) span.classList.remove('fw-bold'); // Remove bold
+                }
+            });
+
+
             const targetPanel = document.getElementById(targetPanelId);
-            const targetBox = document.getElementById(targetBoxId);
-            if (targetPanel && targetBox) {
-                targetPanel.style.display = 'block';
-                targetBox.style.backgroundColor = '#ABFF84'; targetBox.style.border = '2px solid #5cb85c';
-                this.style.fontWeight = '900';
-                currentSelectedPersonaBox = targetBox; currentSelectedPersonaPanel = targetPanel;
+            const targetBoxLink = this; // The clicked link (<a> tag)
+
+            if (targetPanel && targetBoxLink) {
+                targetPanel.style.display = 'block'; // Show selected panel
+                // Add active styling to the link/box
+                targetBoxLink.style.backgroundColor = '#e9f5ff'; // Light blue background on link
+                targetBoxLink.style.border = '2px solid #0d6efd'; // Blue border on link
+                const span = targetBoxLink.querySelector('span');
+                if (span) span.classList.add('fw-bold'); // Make text bold
+
+                currentSelectedPersonaBox = targetBoxLink; // Store the link itself
+                currentSelectedPersonaPanel = targetPanel;
+
                  // Focus camera on selected persona
-                 if (typeof game !== 'undefined' && game.scene.scenes[0] && personas[personaId]) {
-                    game.scene.scenes[0].cameras.main.stopFollow(); // Stop previous follow first
-                    game.scene.scenes[0].cameras.main.startFollow(personas[personaId], true, 0.1, 0.1); // Smooth follow
+                 if (typeof game !== 'undefined' && game.scene.scenes[0] && typeof personas !== 'undefined' && personas[personaId]) {
+                    game.scene.scenes[0].cameras.main.stopFollow();
+                    game.scene.scenes[0].cameras.main.startFollow(personas[personaId], true, 0.1, 0.1);
                  }
-                 document.getElementById("temp_focus").innerHTML = personaId; // Store focus
             }
         });
     });
 
-    // --- Persona State Modal Logic ---
+    // --- Persona State Modal Logic (Vanilla JS + Bootstrap 5 JS API) ---
     function loadPersonaState(simCode, step, personaUnderscore) {
         const stateUrl = `/replay_persona_state/${simCode}/${step}/${personaUnderscore}/`;
         console.log("Loading state from:", stateUrl);
-        // Ensure jQuery is loaded before using $
-        if (typeof $ !== 'undefined') {
-            $('#personaStateModalBody').html('<p class="text-center"><span class="glyphicon glyphicon-refresh spinning"></span> Loading state details...</p>');
-            $('#personaStateModal').modal('show'); // Assumes Bootstrap JS is loaded
-            $.ajax({
-                url: stateUrl, method: 'GET',
-                success: function(response) { $('#personaStateModalBody').html(response); },
-                error: function(xhr, status, error) {
-                    $('#personaStateModalBody').html(`<div class="alert alert-danger">Error loading persona state: ${error} (${xhr.status})</div>`);
-                    console.error("Error loading persona state:", status, error, xhr.responseText);
+
+        const modalElement = document.getElementById('personaStateModal');
+        const modalBody = document.getElementById('personaStateModalBody');
+
+        if (!modalElement || !modalBody) {
+            console.error("Modal elements not found!");
+            return;
+        }
+
+        // Get or create Bootstrap Modal instance
+        if (!personaStateModalInstance) {
+            personaStateModalInstance = new bootstrap.Modal(modalElement);
+        }
+
+        // Show loading state in modal
+        modalBody.innerHTML = `<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>`;
+        personaStateModalInstance.show();
+
+        // Fetch the content
+        fetch(stateUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                return response.text(); // Get HTML content as text
+            })
+            .then(html => {
+                modalBody.innerHTML = html; // Inject the fetched HTML
+            })
+            .catch(error => {
+                console.error("Error loading persona state:", error);
+                modalBody.innerHTML = `<div class="alert alert-danger">Error loading persona state: ${error.message}</div>`;
             });
+    }
+
+    // Function to get the current step (remains the same)
+    function getCurrentStep() {
+        // Ensure phaserStep is defined and is a number, otherwise default to slider or 0
+        if (typeof phaserStep !== 'undefined' && !isNaN(phaserStep)) {
+             return phaserStep;
         } else {
-            console.error("jQuery not loaded, cannot display persona state modal.");
-            alert("Error: Could not load persona details (jQuery missing).");
+             const slider = document.getElementById('timeline_slider');
+             const sliderValue = slider ? parseInt(slider.value) : NaN;
+             return !isNaN(sliderValue) ? sliderValue : 0; // Default to 0 if slider also fails
         }
     }
 
-    // Function to get the current step
-    function getCurrentStep() {
-        if (typeof phaserStep !== 'undefined') { return phaserStep; }
-        else { const slider = document.getElementById('timeline_slider'); return slider ? parseInt(slider.value) : 0; }
-    }
+
+    // --- Speed Button Logic (Updated for Radio Buttons) ---
+    document.querySelectorAll('.speed-button').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                const speedMultiplier = parseInt(this.dataset.speed);
+                 if (!isNaN(speedMultiplier) && typeof calculateMovementSpeed === 'function') {
+                    // Update global variables used by Phaser script (defined in playback_script.html)
+                    // Ensure these variables are globally accessible or passed correctly
+                    if (typeof current_play_speed_multiplier !== 'undefined') {
+                         current_play_speed_multiplier = speedMultiplier;
+                         movement_speed = calculateMovementSpeed(current_play_speed_multiplier);
+                         if (typeof tile_width !== 'undefined') {
+                              execute_count_max = Math.max(1, tile_width / movement_speed);
+                              console.log(`Speed set to ${speedMultiplier}x. New execute_count_max: ${execute_count_max}`);
+                         } else { console.error("tile_width is not defined when setting speed."); }
+                    } else { console.error("current_play_speed_multiplier is not defined."); }
+                 } else {
+                    console.error("Invalid speed multiplier or calculateMovementSpeed not defined:", this.dataset.speed);
+                 }
+            }
+        });
+         // Set initial active state based on context variable passed to the include
+         // Make sure current_play_speed_multiplier is defined before this runs
+         if (typeof current_play_speed_multiplier !== 'undefined' && radio.dataset.speed == current_play_speed_multiplier) {
+             radio.checked = true;
+         }
+    });
+
 </script>
 {% endblock js_content %}

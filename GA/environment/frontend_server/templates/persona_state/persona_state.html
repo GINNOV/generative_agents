@@ -1,214 +1,170 @@
-{% extends "base.html" %}
-{% load staticfiles %}
+{% comment %}
+This template fragment is loaded via AJAX into the modal in playback.html.
+It receives context variables like scratch, spatial, a_mem_event, etc.
+Upgraded to Bootstrap 5.
+{% endcomment %}
 
-{% block content %}
+{% load static %} {# Use static, not staticfiles #}
 
-<style>
-	.scratch_table {
-		font-size: 1.3em;
-	}
-</style>
+{# Persona Header (Optional, could be part of the modal title instead) #}
+{# <h4 class="mb-3">{{ persona_name }} (Step: {{ step }})</h4> #}
 
-
-<h3 style="width:80%; margin:0 auto; margin-top:5em; padding:1em; padding-left:3.5em; padding-right:2em; border-radius:10px; padding-top:3em"><a href="{{request.META.HTTP_REFERER}}">< Return to simulation</a></h3>
-
-
-<div class="media" style="width:80%; margin:0 auto; margin-top:2em; background-color:#EEEEEE; padding:1em; padding-left:3.5em; padding-right:2em; border-radius:10px; padding-top:3em">
-  <div class="media-left media">
-    <a href="#">
-    	{% with 'assets/characters/profile/'|add:persona_name_underscore|add:'.png' as image_static %}
-      <img class="media-object" src="{% static image_static %}" style="width:5em">
-      {% endwith %}
-    </a>
+{# --- Scratchpad / Basic Info --- #}
+<div class="card mb-4">
+  <div class="card-header bg-secondary-subtle">
+    <h5 class="mb-0 h6">Basic Information & Current State</h5>
   </div>
-  <div class="media-body" style='padding-left:3em; padding-top:0.5em; padding-bottom:1em'>
-  	<div class="row">
-    	<h1 class="col-md-8" style="margin-bottom:0.8em; font-size:2em; ">
-    		{{persona_name}}
-    	</h1>
-    </div>
-    <div style="">
+  <div class="card-body p-3">
+    <dl class="row mb-0 small"> {# Definition list, small text #}
+      <dt class="col-sm-4">First name</dt>
+      <dd class="col-sm-8">{{ scratch.first_name|default:"N/A" }}</dd>
 
-		  <h3 style="font-size:1.65em"><strong>Basic information</strong></h3>
-		  <table class="scratch_table" style="width:100%">
-			  <tr>
-			    <td style="width:20%; font-weight:800">First name</td>
-			    <td>{{scratch.first_name}}</td>
-			  </tr>
-			  <tr>
-			    <td style="font-weight:800">Last name</td>
-			    <td>{{scratch.last_name}}</td>
-			  </tr>
-			  <tr>
-			    <td style="font-weight:800">Age</td>
-			    <td>{{scratch.age}}</td>
-			  </tr>
-			  <tr>
-			    <td style="font-weight:800">Current time</td>
-			    <td>{{scratch.curr_time}}</td>
-			  </tr>
-			  <tr>
-			    <td style="font-weight:800">Current tile</td>
-			    <td>{{scratch.curr_tile}}</td>
-			  </tr>
-			</table>
-			<br>
+      <dt class="col-sm-4">Last name</dt>
+      <dd class="col-sm-8">{{ scratch.last_name|default:"N/A" }}</dd>
 
+      <dt class="col-sm-4">Age</dt>
+      <dd class="col-sm-8">{{ scratch.age|default:"N/A" }}</dd>
 
-			<hr style="border:solid; border-width:1px">
-			<h3 style="font-size:1.65em"><strong>Settings</strong></h3>
-		  <table class="scratch_table" style="width:100%">
-			  <tr>
-			    <td style="width:20%; font-weight:800">Vision Radius</td>
-			    <td>{{scratch.vision_r}}</td>
-			  </tr>
-			  <tr>
-			    <td style="font-weight:800">Attention Bandwidth</td>
-			    <td>{{scratch.att_bandwidth}}</td>
-			  </tr>
-			  <tr>
-			    <td style="font-weight:800">Retention</td>
-			    <td>{{scratch.retention}}</td>
-			  </tr>
-			</table>
-			<br>
+      <dt class="col-sm-4">Current time</dt>
+      <dd class="col-sm-8">{{ scratch.curr_time|default:"N/A" }}</dd>
 
+      <dt class="col-sm-4">Current tile</dt>
+      <dd class="col-sm-8">{{ scratch.curr_tile|default:"N/A" }}</dd>
 
-			<hr style="border:solid; border-width:1px">
-			<h3 style="font-size:1.65em"><strong>Personality and Lifestyle</strong></h3>
-			<table class="scratch_table" style="width:100%">
-			  <tr>
-			    <td style="font-weight:800">Innate tendency</td>
-			    <td>{{scratch.innate}}</td>
-			  </tr>
-			  <tr>
-			    <td style="font-weight:800">Learned tendency</td>
-			    <td>{{scratch.learned}}</td>
-			  </tr>
-			  <tr>
-			    <td style="font-weight:800">Currently</td>
-			    <td>{{scratch.currently}}</td>
-			  </tr>
-			  <tr>
-			    <td style="font-weight:800">Lifestyle</td>
-			    <td>{{scratch.lifestyle}}</td>
-			  </tr>
-			</table>
-			<br>
+      <dt class="col-sm-4 pt-2">Vision Radius</dt> {# Added padding top #}
+      <dd class="col-sm-8 pt-2">{{ scratch.vision_r|default:"N/A" }}</dd>
 
+      <dt class="col-sm-4">Attention Bandwidth</dt>
+      <dd class="col-sm-8">{{ scratch.att_bandwidth|default:"N/A" }}</dd>
 
-			<hr style="border:solid; border-width:1px">
-			<h3 style="font-size:1.65em; "><strong>Current Action State</strong></h3>
-			<table class="scratch_table" style="width:100%">
-			  <tr>
-			    <td style="width:20%; font-weight:800">Daily Requirement</td>
-			    <td>
-			    	<ol>
-			    	{% for i in scratch.daily_req %}
-			    	  <li>{{ i }}</li>
-			    	{% endfor %}
-			    	</ol>
-			    </td>
-			  </tr>
-			  <tr>
-			    <td style="font-weight:800">Daily Schedule</td>
-			    <td>
-			    	<ol>
-			    	{% for i in scratch.f_daily_schedule %}
-			    	  <li>{{ i }}</li>
-			    	{% endfor %}
-			    	</ol>
-			    </td>
-			  </tr>
-			  <tr>
-			    <td style="font-weight:800">Action Address</td>
-			    <td>{{scratch.act_address}}</td>
-			  </tr>
-			  <tr>
-			    <td style="font-weight:800">Action Start Time</td>
-			    <td>{{scratch.act_start_time}}</td>
-			  </tr>
-			  <tr>
-			    <td style="font-weight:800">Action Duration</td>
-			    <td>{{scratch.act_duration}}</td>
-			  </tr>
-			  <tr>
-			    <td style="font-weight:800">Action Description</td>
-			    <td>{{scratch.act_description}}</td>
-			  </tr>
-			  <tr>
-			    <td style="font-weight:800">Action Pronunciatio</td>
-			    <td>{{scratch.act_pronunciatio}}</td>
-			  </tr>
-			</table>
-			<br>
-
-
-
-			<hr style="border:solid; border-width:1px">
-			<h3 style="font-size:1.65em"><strong>Agent's Memory</strong></h3>
-			<h4 style="font-size:1.45em"><strong>Event</strong></h4>
-			<div class="" style="width:100%">
-			  {% for node_details in a_mem_event %}
-				  <p>
-				  	<!-- <strong>Node ID: node_{{ node_details.node_count }}</strong><br> -->
-				  	<!-- Node Count: {{ node_details.node_count }} ||  -->
-				  	<!-- Type Count: {{ node_details.type_count }}  -->
-				  	<!-- <br> -->
-				  	[node_{{ node_details.node_count }}] {{ node_details.created }}: <strong>{{ node_details.description }}</strong>
-				  	<!-- || -->
-				  	<!-- Expiration: {{ node_details.expiration }} -->
-				  	<!-- <br> -->
-				  	<!-- S, P, O 
-				  	 node_details.subject , 
-				  	 node_details.predicate , 
-				  	 node_details.object 
-				  	<br> -->
-				  	<!-- Description: {{ node_details.description }} -->
-				  	<!-- <br> -->
-				  	<!-- Keywords: {{ node_details.keywords }} -->
-				  	<!-- <br> -->
-				  	<!-- Filling: {{ node_details.filling }} -->
-				  </p> 
-				   
-			  {% endfor %}
-			</div>
-			<br>
-
-			
-			<h4 style="font-size:1.45em"><strong>Agent's Conversation History</strong></h4>
-			<div class="" style="width:100%">
-			  {% for node_details in a_mem_chat %}
-				  <p>
-				  	Created: {{ node_details.created }} 
-				  	<br>
-				  	Description: {{ node_details.description }}
-				  	<br>
-				  	Filling: <br>
-				  	{% for name, utt in node_details.filling %}
-				  	<span style="font-style: italic;">{{ name }}</span>: {{ utt }}<br>
-				  	{% endfor %}
-				  </p> 
-			  {% endfor %}
-			</div>
-			<br>
-
-			<h4 style="font-size:1.45em"><strong>Agent's Thought</strong></h4>
-			<div class="" style="width:100%">
-			  {% for node_details in a_mem_thought %}
-				  <p>
-				  	[node_{{ node_details.node_count }}] {{ node_details.created }}: <strong>{{ node_details.description }}</strong> 
-
-				  	<br>(Depth: {{ node_details.depth }}; Evidence: {{ node_details.filling }})
-				  	
-				  </p> 
-			  {% endfor %}
-			</div>
-			<br>
-
-
-
-		</div>
+      <dt class="col-sm-4">Retention</dt>
+      <dd class="col-sm-8">{{ scratch.retention|default:"N/A" }}</dd>
+    </dl>
   </div>
 </div>
-{% endblock content %}
+
+{# --- Personality / Lifestyle --- #}
+<div class="card mb-4">
+  <div class="card-header bg-secondary-subtle">
+    <h5 class="mb-0 h6">Personality & Lifestyle</h5>
+  </div>
+  <div class="card-body p-3">
+     <dl class="row mb-0 small">
+         <dt class="col-sm-4">Innate tendency</dt>
+         <dd class="col-sm-8">{{ scratch.innate|default:"N/A" }}</dd>
+         <dt class="col-sm-4">Learned tendency</dt>
+         <dd class="col-sm-8">{{ scratch.learned|default:"N/A" }}</dd>
+         <dt class="col-sm-4">Currently</dt>
+         <dd class="col-sm-8">{{ scratch.currently|default:"N/A" }}</dd>
+         <dt class="col-sm-4">Lifestyle</dt>
+         <dd class="col-sm-8">{{ scratch.lifestyle|default:"N/A" }}</dd>
+     </dl>
+  </div>
+</div>
+
+{# --- Current Action State --- #}
+<div class="card mb-4">
+  <div class="card-header bg-secondary-subtle">
+    <h5 class="mb-0 h6">Current Action State</h5>
+  </div>
+  <div class="card-body p-3">
+    <dl class="row mb-0 small">
+        <dt class="col-sm-4">Daily Requirement</dt>
+        <dd class="col-sm-8">
+            {% if scratch.daily_req %}
+            <ol class="mb-0 ps-3"> {# Remove bottom margin, add padding start #}
+            {% for i in scratch.daily_req %}
+              <li>{{ i }}</li>
+            {% endfor %}
+            </ol>
+            {% else %} N/A {% endif %}
+        </dd>
+
+        <dt class="col-sm-4 pt-2">Daily Schedule</dt> {# Padding top #}
+        <dd class="col-sm-8 pt-2">
+            {% if scratch.f_daily_schedule %}
+            <ol class="mb-0 ps-3">
+            {% for i in scratch.f_daily_schedule %}
+              <li>{{ i }}</li>
+            {% endfor %}
+            </ol>
+            {% else %} N/A {% endif %}
+        </dd>
+
+        <dt class="col-sm-4 pt-2">Action Address</dt>
+        <dd class="col-sm-8 pt-2">{{ scratch.act_address|default:"N/A" }}</dd>
+
+        <dt class="col-sm-4">Action Start Time</dt>
+        <dd class="col-sm-8">{{ scratch.act_start_time|default:"N/A" }}</dd>
+
+        <dt class="col-sm-4">Action Duration</dt>
+        <dd class="col-sm-8">{{ scratch.act_duration|default:"N/A" }}</dd>
+
+        <dt class="col-sm-4">Action Description</dt>
+        <dd class="col-sm-8">{{ scratch.act_description|default:"N/A" }}</dd>
+
+        <dt class="col-sm-4">Action Pronunciatio</dt>
+        <dd class="col-sm-8">{{ scratch.act_pronunciatio|default:"N/A" }}</dd>
+    </dl>
+  </div>
+</div>
+
+
+{# --- Agent's Memory --- #}
+<div class="card">
+  <div class="card-header bg-secondary-subtle">
+    <h5 class="mb-0 h6">Agent's Memory</h5>
+  </div>
+  <div class="card-body p-3">
+    {# Using List Groups for Memory Sections #}
+    <h6 class="mt-2">Events</h6>
+    {% if a_mem_event %}
+    <ul class="list-group list-group-flush small mb-3">
+      {% for node_details in a_mem_event %}
+          <li class="list-group-item py-1 px-0"> {# Reduced padding #}
+            <span class="text-muted">[node_{{ node_details.node_count }}] {{ node_details.created }}:</span>
+            <strong>{{ node_details.description }}</strong>
+          </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="small text-muted"><em>No events recorded.</em></p>
+    {% endif %}
+
+    <h6 class="mt-3">Conversation History</h6>
+    {% if a_mem_chat %}
+    <ul class="list-group list-group-flush small mb-3">
+      {% for node_details in a_mem_chat %}
+          <li class="list-group-item py-1 px-0">
+            <span class="text-muted">{{ node_details.created }}:</span> {{ node_details.description }}
+            {% if node_details.filling %}
+            <div class="ps-3 mt-1"> {# Indent conversation lines #}
+            {% for name, utt in node_details.filling %}
+                <span class="text-muted">{{ name }}:</span> {{ utt }}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+          </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+     <p class="small text-muted"><em>No conversation history recorded.</em></p>
+    {% endif %}
+
+    <h6 class="mt-3">Thoughts</h6>
+     {% if a_mem_thought %}
+    <ul class="list-group list-group-flush small mb-0">
+      {% for node_details in a_mem_thought %}
+          <li class="list-group-item py-1 px-0">
+             <span class="text-muted">[node_{{ node_details.node_count }}] {{ node_details.created }}:</span>
+             <strong>{{ node_details.description }}</strong>
+             <br><span class="text-muted small">(Depth: {{ node_details.depth }}; Evidence: {{ node_details.filling }})</span>
+          </li>
+      {% endfor %}
+    </ul>
+     {% else %}
+      <p class="small text-muted"><em>No thoughts recorded.</em></p>
+     {% endif %}
+
+  </div>
+</div>

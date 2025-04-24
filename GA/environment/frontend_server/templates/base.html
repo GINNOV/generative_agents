@@ -1,36 +1,68 @@
-<!-- 
-Author: Joon Sung Park (joonspk@stanford.edu)
--->
-
 <!DOCTYPE html>
-{% load staticfiles %}
+{% load static %} {# Use static, not staticfiles #}
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
+  {# Added Viewport Meta Tag (Essential for Bootstrap 5 Responsive Behavior) #}
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Reverie</title>
-  <!-- Latest compiled and minified CSS -->
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
-	<!-- Optional theme -->
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap-theme.min.css" integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+
+  {# Removed Bootstrap 3 CSS and Theme #}
+  {# <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" ...> #}
+	{# <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap-theme.min.css" ...> #}
+
+  {# Added Bootstrap 5 CSS (Using CDN) - Replace integrity hash if using a different version #}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+  {# Optional: Add link to Bootstrap Icons if you plan to use them #}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  {# Link to your custom CSS file if you have one #}
+  {# <link rel="stylesheet" href="{% static 'css/your_custom_styles.css' %}"> #}
 
 </head>
- 
-<body class="top-navigation" style="background-color: white">
+
+{# Removed class="top-navigation" as it's likely Bootstrap 3 specific. Review your navbar implementation. #}
+<body style="background-color: white">
+
+  {# --- Navigation Bar Placeholder --- #}
+  <nav class="navbar navbar-expand-lg bg-light mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Reverie</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Home</a>
+          </li>
+          <!-- Add more nav-items here -->
+        </ul>
+      </div>
+    </div>
+  </nav>
+  {# --- End Navigation Bar Placeholder --- #}
+
+
   {% block content %}
 	{% endblock content %}
 
-	<!-- Latest compiled and minified JavaScript -->
-	<script src="https://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+  {# Added Bootstrap 5 JS Bundle (includes Popper) - Place before closing </body> #}
+  {# Replace integrity hash if using a different version #}
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
-	{% block js_content %}
-	{% endblock js_content %}
+  {% block js_content %}
+    {# Any custom JavaScript that previously relied on jQuery will need to be rewritten #}
+  {% endblock js_content %}
 
-	<script type="text/javascript" id="clustrmaps" src="//clustrmaps.com/map_v2.js?d=Xha1v8a6ENHDAgZ2dJoH85LCl6H1VwpYfgwfbgau8r4&cl=ffffff&w=a"></script>
-	<style type="text/css">
+  {# Removed Clustrmaps script - Add back if needed and compatible #}
+	{# <script type="text/javascript" id="clustrmaps" src="//clustrmaps.com/map_v2.js?d=Xha1v8a6ENHDAgZ2dJoH85LCl6H1VwpYfgwfbgau8r4&cl=ffffff&w=a"></script> #}
+	{# <style type="text/css">
 		#clustrmaps-widget-v2 {
 			display: none !important
 		}
-	</style>
+	</style> #}
 </body>
 </html>

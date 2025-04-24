@@ -1,129 +1,143 @@
 {% extends "base.html" %}
-{% load static %} {# Use load static instead of staticfiles #}
+{% load static %} {# Use static, not staticfiles #}
 
 {% block content %}
-<br>
-<br>
-<div class="container"> {# Use Bootstrap container for better layout #}
-    <div class="row">
-        <div class="col-md-10 col-md-offset-1"> {# Center content #}
+<div class="container mt-4 mb-5"> {# Added top/bottom margin #}
+    <div class="row justify-content-center"> {# Center the column #}
+        <div class="col-md-10"> {# Removed offset #}
 
-            <div class="page-header">
+            <div class="pb-2 mb-4 border-bottom"> {# Replaces page-header #}
                 <h1>Generative Agents Simulation Interface</h1>
             </div>
 
-            {# --- Live Backend Status (No changes needed here) --- #}
-            <div class="panel panel-info" style="margin-bottom: 2em;">
-              <div class="panel-heading">
-                <h3 class="panel-title">Live Backend Status</h3>
+            {# --- Live Backend Status --- #}
+            <div class="card border-info mb-4"> {# Replaced panel with card, added bottom margin #}
+              <div class="card-header bg-info-subtle text-dark"> {# Use card-header, subtle background #}
+                <h3 class="card-title mb-0 h5">Live Backend Status</h3> {# Use h5 for card title #}
               </div>
-              <div class="panel-body">
+              <div class="card-body">
                 {% if live_backend.running %}
-                    <p class="text-success">
-                        <span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span>
+                    <p class="text-success mb-1"> {# Reduced margin #}
+                        <i class="bi bi-check-circle-fill me-2"></i> {# BS Icon, margin end #}
                         Live backend detected for simulation: <strong>{{ live_backend.sim_code|default:"(Unknown)" }}</strong>
                     </p>
-                    <p><em>You can control the live simulation via the backend terminal (<code>reverie.py</code>). Refresh this page to check status.</em></p>
+                    <p class="small text-muted mb-0"><em>You can control the live simulation via the backend terminal (<code>reverie.py</code>). Refresh this page to check status.</em></p>
                 {% else %}
-                    <p class="text-danger">
-                        <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                    <p class="text-danger mb-1"> {# Reduced margin #}
+                         <i class="bi bi-x-circle-fill me-2"></i> {# BS Icon, margin end #}
                         No active backend simulation detected.
                     </p>
-                    <p><em>Run <code>python ../../reverie/backend_server/reverie.py</code> (adjust path if needed) to start an interactive simulation session.</em></p>
+                    <p class="small text-muted mb-0"><em>Run <code>python ../../reverie/backend_server/reverie.py</code> (adjust path if needed) to start an interactive simulation session.</em></p>
                 {% endif %}
               </div>
             </div>
 
 
             {# --- Playback Selection --- #}
-            <div class="panel panel-primary">
-              <div class="panel-heading">
-                <h3 class="panel-title">Playback Recorded Simulations</h3>
+            <div class="card border-primary"> {# Replaced panel #}
+              <div class="card-header bg-primary-subtle text-dark"> {# Use card-header #}
+                <h3 class="card-title mb-0 h5">Playback Recorded Simulations</h3> {# Use h5 #}
               </div>
-              <div class="panel-body">
-                <h4>Compressed Simulations (Recommended for Playback)</h4>
+              <div class="card-body">
+                <h4 class="h5">Compressed Simulations (Recommended)</h4> {# Adjusted heading size #}
                 {% if available_compressed_sims %}
-                    <div class="list-group">
+                    <div class="list-group mb-3" id="compressed-sims-list"> {# Added bottom margin #}
                         {% for sim_name in available_compressed_sims %}
-                            <div class="list-group-item">
-                                <h4 class="list-group-item-heading">{{ sim_name }}</h4>
-                                <a href="{% url 'demo' sim_name 0 2 %}" class="btn btn-success btn-sm">
-                                    <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Play Demo (Speed 2x)
-                                </a>
-                                <a href="{% url 'demo' sim_name 0 1 %}" class="btn btn-info btn-sm" style="margin-left: 5px;">
-                                    <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Play (Speed 1x)
-                                </a>
-                                <a href="{% url 'demo' sim_name 0 4 %}" class="btn btn-info btn-sm" style="margin-left: 5px;">
-                                    <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Play (Speed 8x)
-                                </a>
+                            <div class="list-group-item" id="compressed-item-{{ sim_name }}">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap"> {# Flexbox for layout #}
+                                    <h6 class="mb-1 me-3 fw-bold">{{ sim_name }}</h6> {# Smaller heading, bold, margin #}
+                                    {# --- Action Buttons Group --- #}
+                                    <div class="text-nowrap mb-1"> {# Prevent wrapping, margin bottom #}
+                                        <a href="{% url 'demo' sim_name 0 2 %}" class="btn btn-success btn-sm">
+                                            <i class="bi bi-play-fill"></i> Play (2x) {# Icon #}
+                                        </a>
+                                        <a href="{% url 'demo' sim_name 0 1 %}" class="btn btn-info btn-sm ms-1"> {# Margin start #}
+                                            <i class="bi bi-play-fill"></i> (1x) {# Icon #}
+                                        </a>
+                                        <a href="{% url 'demo' sim_name 0 4 %}" class="btn btn-info btn-sm ms-1"> {# Margin start #}
+                                            <i class="bi bi-play-fill"></i> (8x) {# Icon #}
+                                        </a>
+                                        {# --- Delete Button --- #}
+                                        <button class="btn btn-danger btn-sm delete-btn ms-2" {# Margin start #}
+                                                data-sim-code="{{ sim_name }}" data-sim-type="compressed"
+                                                title="Delete Compressed Simulation">
+                                            <i class="bi bi-trash-fill"></i> Delete {# Icon #}
+                                        </button>
+                                    </div>
+                                </div>
+                                {# --- Status Area Below --- #}
+                                <div id="delete-status-compressed-{{ sim_name }}" class="mt-1 small text-end"></div> {# Margin top, small text, align right #}
                             </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="alert alert-warning" role="alert">
+                    <div class="alert alert-warning small" role="alert"> {# Smaller alert text #}
                         No compressed simulations found in <code>GA/environment/frontend_server/compressed_storage/</code>.
-                        <br><em>Run <code>python ../../reverie/compress_sim_storage.py &lt;sim_code&gt; &lt;fin_code&gt;</code> (adjust path if needed) after an offline run to create one, or use the Compress button below.</em>
+                        <br><em>Run <code>python ../../reverie/compress_sim_storage.py &lt;sim_code&gt; &lt;fin_code&gt;</code> (adjust path if needed) or use Compress button below.</em>
                     </div>
                 {% endif %}
 
                 <hr> {# Optional separator #}
 
-                <h4>Uncompressed Simulations (Raw Data: storage folder) </h4>
+                <h4 class="h5">Uncompressed Simulations (Raw Data)</h4> {# Adjusted heading size #}
                  {% if available_uncompressed_sims %}
-                    <div class="list-group">
+                    <div class="list-group" id="uncompressed-sims-list">
                         {% for sim_name in available_uncompressed_sims %}
-                             {# Only list if no corresponding compressed version exists #}
-                             {# We show all uncompressed now, and add the compress button #}
-                             <div class="list-group-item">
-                                 <h5 class="list-group-item-heading">{{ sim_name }}</h5>
+                             <div class="list-group-item" id="uncompressed-item-{{ sim_name }}">
+                                 <div class="d-flex justify-content-between align-items-center flex-wrap"> {# Flexbox layout #}
+                                     <h6 class="mb-1 me-3">{{ sim_name }}</h6> {# Smaller heading, margin #}
 
-                                 {# --- START: Compression UI --- #}
-                                 {% if sim_name not in available_compressed_sims %}
-                                 <div class="input-group input-group-sm" style="margin-top: 5px; max-width: 400px;">
-                                     <input type="text" class="form-control" placeholder="Compressed Name (e.g., {{ sim_name }}_comp)" id="fin-code-{{ sim_name }}">
-                                     <span class="input-group-btn">
-                                         <button class="btn btn-primary compress-btn" type="button" data-sim-code="{{ sim_name }}">
-                                             <span class="glyphicon glyphicon-compressed" aria-hidden="true"></span> Compress
+                                     {# --- Action Buttons Group --- #}
+                                     <div class="d-flex align-items-center flex-wrap ms-auto"> {# Pushed right #}
+                                         {# --- Delete Button (First) --- #}
+                                         <button class="btn btn-outline-danger btn-sm delete-btn me-2 mb-1" {# Outline style, margin #}
+                                                 data-sim-code="{{ sim_name }}" data-sim-type="uncompressed"
+                                                 title="Delete Uncompressed Simulation Folder">
+                                             <i class="bi bi-trash-fill"></i> {# Icon only #}
                                          </button>
-                                     </span>
-                                 </div>
-                                 <div id="compress-status-{{ sim_name }}" style="margin-top: 5px; font-size: 0.9em;"></div> {# Area for messages #}
-                                 {% else %}
-                                 <p class="list-group-item-text text-success" style="margin-top: 5px;">
-                                     <small><em>(Compressed version available above)</em></small>
-                                 </p>
-                                 {% endif %}
-                                 {# --- END: Compression UI --- #}
 
-                                 <p class="list-group-item-text text-muted" style="margin-top: 5px;">
-                                 </p>
+                                         {# --- Compression UI --- #}
+                                         {% if sim_name not in available_compressed_sims %}
+                                         <div class="input-group input-group-sm mb-1" style="width: auto; max-width: 200px;"> {# Margin bottom #}
+                                             <input type="text" class="form-control" placeholder="Compressed Name" id="fin-code-{{ sim_name }}">
+                                             <button class="btn btn-outline-primary compress-btn" type="button" data-sim-code="{{ sim_name }}" title="Compress Simulation"> {# Outline style #}
+                                                 <i class="bi bi-box-arrow-down"></i> {# Compress Icon #}
+                                             </button>
+                                         </div>
+                                         {% else %}
+                                         <span class="text-success small me-2 mb-1"><em>(Compressed)</em></span> {# Margin #}
+                                         {% endif %}
+                                     </div>
+                                 </div>
+                                 {# --- Status Areas Below --- #}
+                                 <div id="compress-status-{{ sim_name }}" class="mt-1 small"></div> {# Margin top, small text #}
+                                 <div id="delete-status-uncompressed-{{ sim_name }}" class="mt-1 small text-end"></div> {# Margin top, small text, align right #}
                              </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                     <div class="alert alert-warning" role="alert">
+                     <div class="alert alert-warning small" role="alert"> {# Smaller alert text #}
                         No uncompressed simulation runs found in <code>GA/environment/frontend_server/storage/</code> (excluding base/public folders).
                         <br><em>Run <code>python ../../reverie/backend_server/reverie_offline.py --sim_code &lt;name&gt; --step &lt;num&gt;</code> (adjust path if needed) to generate simulation data.</em>
                     </div>
                 {% endif %}
 
-              </div> {# End panel-body #}
-            </div> {# End panel #}
+              </div> {# End card-body #}
+            </div> {# End card #}
         </div> {# End col #}
     </div> {# End row #}
 </div> {# End container #}
-
-<div style="padding-bottom:15em"> </div>
 
 {% endblock content %}
 
 
 {% block js_content %}
-{# No Phaser scripts needed on this launcher page #}
+{# The existing JavaScript for compression and deletion should largely work #}
+{# as it uses vanilla JS, but double-check element IDs if you changed them significantly #}
 <script>
-    console.log("Home launcher page loaded.");
+    console.log("Home launcher page loaded (BS5).");
 
-    // --- START: Compression Button Logic ---
+    // --- START: Compression Button Logic (Adjusted for BS5 Classes if needed) ---
     document.querySelectorAll('.compress-btn').forEach(button => {
         button.addEventListener('click', function() {
             const simCode = this.dataset.simCode;
@@ -131,80 +145,145 @@
             const finCode = finCodeInput.value.trim();
             const statusDiv = document.getElementById(`compress-status-${simCode}`);
 
-            // Clear previous status message
-            statusDiv.innerHTML = '';
+            statusDiv.innerHTML = ''; // Clear previous status
 
             if (!finCode) {
                 statusDiv.innerHTML = '<span class="text-danger">Please enter a name for the compressed version.</span>';
-                finCodeInput.focus(); // Focus the input field
+                finCodeInput.focus();
                 return;
             }
-
-            // Basic validation (allow letters, numbers, underscore, hyphen)
             if (!/^[a-zA-Z0-9_-]+$/.test(finCode)) {
                  statusDiv.innerHTML = '<span class="text-danger">Invalid name. Use only letters, numbers, underscore (_), or hyphen (-).</span>';
                  finCodeInput.focus();
                  return;
             }
 
-            // Disable button during processing
+            // Update button content for loading state
+            const originalButtonHTML = this.innerHTML;
             this.disabled = true;
-            this.innerHTML = '<span class="glyphicon glyphicon-refresh spinning" aria-hidden="true"></span> Compressing...';
-            statusDiv.innerHTML = '<span class="text-info"><span class="glyphicon glyphicon-refresh spinning"></span> Processing... this might take a minute.</span>'; // Loading indicator
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>'; // BS5 spinner
+            statusDiv.innerHTML = '<span class="text-info"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing... this might take a minute.</span>';
 
-            // Get CSRF token (standard Django way)
             const csrftoken = getCookie('csrftoken');
             if (!csrftoken) {
                 console.error("CSRF token not found!");
                 statusDiv.innerHTML = '<span class="text-danger">Error: CSRF token missing. Cannot send request.</span>';
-                this.disabled = false; // Re-enable button
-                this.innerHTML = '<span class="glyphicon glyphicon-compressed" aria-hidden="true"></span> Compress';
+                this.disabled = false;
+                this.innerHTML = originalButtonHTML;
                 return;
             }
 
-            // Make the AJAX call to the backend view
-            fetch("{% url 'compress_simulation' %}", { // Use Django URL tag - MAKE SURE THIS NAME IS IN urls.py
+            fetch("{% url 'compress_simulation' %}", {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken // Include CSRF token
-                },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
                 body: JSON.stringify({ sim_code: simCode, fin_code: finCode })
             })
             .then(response => {
-                // Check if response is ok (status 200-299) before parsing JSON
                 if (!response.ok) {
-                    // Try to get error message from response body if possible
-                    return response.json().then(errData => {
-                        throw new Error(errData.message || `HTTP error! status: ${response.status}`);
-                    }).catch(() => {
-                        // Fallback if response body isn't JSON or doesn't have message
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    });
+                    return response.json().then(errData => { throw new Error(errData.message || `HTTP error! status: ${response.status}`); })
+                           .catch(() => { throw new Error(`HTTP error! status: ${response.status}`); });
                 }
-                return response.json(); // Parse JSON body
+                return response.json();
             })
             .then(data => {
                 console.log("Compression response:", data);
                 if (data.status === 'success') {
-                     statusDiv.innerHTML = `<span class="text-success"><span class="glyphicon glyphicon-ok"></span> ${data.message || 'Compression successful! Refresh page to see.'}</span>`;
-                     // Optionally: Refresh page after a delay
+                     statusDiv.innerHTML = `<span class="text-success"><i class="bi bi-check-circle-fill"></i> ${data.message || 'Compression successful! Refresh page to see.'}</span>`;
                      setTimeout(() => { window.location.reload(); }, 3000);
-                } else { // Handle errors reported by the backend logic
-                    statusDiv.innerHTML = `<span class="text-danger"><span class="glyphicon glyphicon-remove"></span> Error: ${data.message || 'Unknown error during compression.'}</span>`;
+                } else {
+                    statusDiv.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Error: ${data.message || 'Unknown error during compression.'}</span>`;
                 }
             })
             .catch(error => {
                 console.error('Compression Fetch Error:', error);
-                statusDiv.innerHTML = `<span class="text-danger">⚠️ Incomplete simulation. ${error.message}. Check console for details.</span>`;
+                statusDiv.innerHTML = `<span class="text-danger">Request failed: ${error.message}. Check console for details.</span>`;
             })
             .finally(() => {
-                 // Re-enable the button regardless of success or failure
                  this.disabled = false;
-                 this.innerHTML = '<span class="glyphicon glyphicon-compressed" aria-hidden="true"></span> Compress';
+                 this.innerHTML = originalButtonHTML; // Restore original icon
             });
         });
     });
+    // --- END: Compression Button Logic ---
+
+
+    // --- START: Deletion Button Logic (Adjusted for BS5 Classes if needed) ---
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const simCode = this.dataset.simCode;
+            const simType = this.dataset.simType; // 'compressed' or 'uncompressed'
+            const statusDivId = `delete-status-${simType}-${simCode}`;
+            const statusDiv = document.getElementById(statusDivId);
+            const listItemId = `${simType}-item-${simCode}`; // ID of the list item div
+            const listItem = document.getElementById(listItemId);
+
+            const originalButtonHTML = this.innerHTML;
+
+            if (!statusDiv) {
+                console.error(`Status div not found: ${statusDivId}`);
+                return;
+            }
+             // Clear previous status
+            statusDiv.innerHTML = '';
+
+            const confirmationMessage = `Are you sure you want to permanently delete the ${simType} simulation data for '${simCode}'? This cannot be undone.`;
+            if (!window.confirm(confirmationMessage)) {
+                statusDiv.innerHTML = '<span class="text-warning">Deletion cancelled.</span>';
+                return;
+            }
+
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>'; // BS5 spinner
+            statusDiv.innerHTML = '<span class="text-info"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...</span>';
+
+            const csrftoken = getCookie('csrftoken');
+            if (!csrftoken) {
+                console.error("CSRF token not found!");
+                statusDiv.innerHTML = '<span class="text-danger">Error: CSRF token missing. Cannot send request.</span>';
+                this.disabled = false;
+                this.innerHTML = originalButtonHTML;
+                return;
+            }
+
+            fetch("{% url 'delete_simulation' %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+                body: JSON.stringify({ sim_code: simCode, sim_type: simType })
+            })
+            .then(response => {
+                 if (!response.ok) {
+                    return response.json().then(errData => { throw new Error(errData.message || `HTTP error! status: ${response.status}`); })
+                           .catch(() => { throw new Error(`HTTP error! status: ${response.status}`); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Deletion response:", data);
+                if (data.status === 'success') {
+                    statusDiv.innerHTML = `<span class="text-success"><i class="bi bi-check-circle-fill"></i> ${data.message || 'Deletion successful!'}</span>`;
+                    if (listItem) {
+                        listItem.style.transition = 'opacity 0.5s ease-out';
+                        listItem.style.opacity = '0';
+                        setTimeout(() => { listItem.remove(); }, 500);
+                    } else {
+                         setTimeout(() => { window.location.reload(); }, 1500);
+                    }
+                } else {
+                    statusDiv.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Error: ${data.message || 'Unknown error during deletion.'}</span>`;
+                    this.disabled = false;
+                    this.innerHTML = originalButtonHTML;
+                }
+            })
+            .catch(error => {
+                console.error('Deletion Fetch Error:', error);
+                statusDiv.innerHTML = `<span class="text-danger">Request failed: ${error.message}. Check console for details.</span>`;
+                this.disabled = false;
+                this.innerHTML = originalButtonHTML;
+            });
+        });
+    });
+    // --- END: Deletion Button Logic ---
+
 
     // Function to get CSRF cookie (standard Django way)
     function getCookie(name) {
@@ -213,7 +292,6 @@
             const cookies = document.cookie.split(';');
             for (let i = 0; i < cookies.length; i++) {
                 const cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
                 if (cookie.substring(0, name.length + 1) === (name + '=')) {
                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
@@ -222,7 +300,7 @@
         }
         return cookieValue;
     }
-    // --- END: Compression Button Logic ---
 
+    // Removed spinning animation CSS - BS5 spinners handle their own animation
 </script>
 {% endblock js_content %}

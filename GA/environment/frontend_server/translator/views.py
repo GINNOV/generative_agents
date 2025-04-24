@@ -12,6 +12,7 @@ import os
 import logging
 import datetime
 import traceback # For detailed error logging
+import shutil # Needed for deleting folders
 
 from django.shortcuts import render, redirect, HttpResponseRedirect, HttpResponse
 from django.http import JsonResponse
@@ -471,74 +472,53 @@ def path_tester_update(request):
        logger.error(f"Error in path_tester_update: {e}")
        return HttpResponse("Error processing request.", status=500)
 
-
-# --- NEW VIEW for Compression ---
-@require_POST # Only allow POST requests
-# @csrf_exempt # Use this decorator ONLY if you are having CSRF issues and understand the risks.
-# It's better to configure CSRF properly on the frontend.
+# --- compress_simulation_view remains the same ---
+@require_POST
 def compress_simulation_view(request):
-    """
-    Handles AJAX requests from the frontend to trigger simulation compression.
-    """
     try:
-        # Load data from request body
         data = json.loads(request.body)
         sim_code = data.get('sim_code')
         fin_code = data.get('fin_code')
 
-        # --- Basic Input Validation ---
         if not sim_code or not fin_code:
             return JsonResponse({'status': 'error', 'message': 'Missing sim_code or fin_code.'}, status=400)
 
-        # More robust validation (prevent directory traversal, etc.)
         valid_chars = set(string.ascii_letters + string.digits + '_-')
         if not all(c in valid_chars for c in sim_code):
              return JsonResponse({'status': 'error', 'message': f"Invalid characters in sim_code: '{sim_code}'."}, status=400)
         if not all(c in valid_chars for c in fin_code):
              return JsonResponse({'status': 'error', 'message': f"Invalid characters in fin_code: '{fin_code}'."}, status=400)
 
-        # --- Determine Absolute Paths ---
-        # Assuming views.py is inside an app folder within frontend_server
         manage_py_dir = os.path.dirname(os.path.abspath(__file__))
-        base_dir = os.path.abspath(os.path.join(manage_py_dir, '..')) # frontend_server dir
+        base_dir = os.path.abspath(os.path.join(manage_py_dir, '..'))
         storage_dir_base = os.path.join(base_dir, 'storage')
         compressed_dir_base = os.path.join(base_dir, 'compressed_storage')
 
-        # Check if source simulation exists
         source_sim_path = os.path.join(storage_dir_base, sim_code)
         if not os.path.isdir(source_sim_path):
             return JsonResponse({'status': 'error', 'message': f"Source simulation '{sim_code}' not found."}, status=404)
 
-        # Check if destination already exists (optional: prevent overwrite or ask user?)
         dest_sim_path = os.path.join(compressed_dir_base, fin_code)
         if os.path.exists(dest_sim_path):
-             # For now, let's allow overwrite, the script might handle deletion anyway
              logger.warning(f"Compressed destination '{fin_code}' already exists. It might be overwritten.")
-             # Alternatively, return an error:
-             # return JsonResponse({'status': 'error', 'message': f"Compressed name '{fin_code}' already exists."}, status=400)
 
-
-        # --- Call the Compression Script ---
         logger.info(f"View received request to compress '{sim_code}' into '{fin_code}'")
         try:
-            # Pass the absolute base paths to the function
             compress_simulation_script(sim_code, fin_code, storage_dir_base, compressed_dir_base)
             logger.info(f"Successfully initiated compression for '{sim_code}'")
             return JsonResponse({'status': 'success', 'message': f"Compression successful for '{sim_code}' into '{fin_code}'. Refresh page."})
 
-        # --- Handle Specific Errors from the Script ---
         except FileNotFoundError as e:
             logger.error(f"Compression failed for '{sim_code}': File not found - {e}")
             return JsonResponse({'status': 'error', 'message': f"Compression failed: {e}"}, status=404)
-        except ValueError as e: # Catch validation errors from compress function
+        except ValueError as e:
             logger.error(f"Compression failed for '{sim_code}': Invalid input - {e}")
             return JsonResponse({'status': 'error', 'message': f"Compression failed: {e}"}, status=400)
-        except NotImplementedError as e: # Catch if the import failed
+        except NotImplementedError as e:
              logger.error(f"Compression feature unavailable: {e}")
              return JsonResponse({'status': 'error', 'message': 'Compression feature is not available (script import failed).'}, status=501)
         except Exception as e:
             logger.error(f"Compression failed unexpectedly for '{sim_code}': {type(e).__name__} - {e}", exc_info=True)
-            # traceback.print_exc() # Log detailed traceback to Django console/logs
             return JsonResponse({'status': 'error', 'message': f"An unexpected error occurred during compression: {type(e).__name__}"}, status=500)
 
     except json.JSONDecodeError:
@@ -546,4 +526,77 @@ def compress_simulation_view(request):
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON in request body.'}, status=400)
     except Exception as e:
         logger.error(f"Generic error in compress_simulation_view: {e}", exc_info=True)
+        return JsonResponse({'status': 'error', 'message': 'An internal server error occurred.'}, status=500)
+
+
+# --- NEW VIEW for Deletion ---
+@require_POST # Use POST for deletion requests
+def delete_simulation_view(request):
+    """
+    Handles AJAX requests from the frontend to delete simulation folders.
+    """
+    try:
+        data = json.loads(request.body)
+        sim_code = data.get('sim_code')
+        sim_type = data.get('sim_type') # 'compressed' or 'uncompressed'
+
+        # --- Input Validation ---
+        if not sim_code or not sim_type:
+            return JsonResponse({'status': 'error', 'message': 'Missing sim_code or sim_type.'}, status=400)
+
+        if sim_type not in ['compressed', 'uncompressed']:
+            return JsonResponse({'status': 'error', 'message': 'Invalid sim_type specified.'}, status=400)
+
+        # Validate sim_code characters (prevent malicious input)
+        valid_chars = set(string.ascii_letters + string.digits + '_-')
+        if not all(c in valid_chars for c in sim_code):
+             return JsonResponse({'status': 'error', 'message': f"Invalid characters in sim_code: '{sim_code}'."}, status=400)
+
+        # --- Determine Target Path ---
+        manage_py_dir = os.path.dirname(os.path.abspath(__file__))
+        base_dir = os.path.abspath(os.path.join(manage_py_dir, '..')) # frontend_server dir
+
+        target_base_dir = None
+        if sim_type == 'compressed':
+            target_base_dir = os.path.join(base_dir, 'compressed_storage')
+        elif sim_type == 'uncompressed':
+            target_base_dir = os.path.join(base_dir, 'storage')
+            # Add extra safety check for uncompressed: prevent deleting 'base_*' or 'public'
+            if sim_code.startswith('base_') or sim_code == 'public':
+                 logger.warning(f"Attempt to delete protected folder denied: {sim_code}")
+                 return JsonResponse({'status': 'error', 'message': 'Cannot delete base or public simulation folders.'}, status=403) # Forbidden
+
+        if not target_base_dir: # Should not happen due to validation above
+             return JsonResponse({'status': 'error', 'message': 'Internal error determining target directory.'}, status=500)
+
+        # Construct the full path to the folder to be deleted
+        folder_to_delete = os.path.join(target_base_dir, sim_code)
+
+        # --- Security Check: Ensure path is within the expected base directory ---
+        # This helps prevent deleting files outside the intended storage areas
+        if not os.path.abspath(folder_to_delete).startswith(os.path.abspath(target_base_dir)):
+            logger.error(f"Deletion path validation failed: '{folder_to_delete}' is outside '{target_base_dir}'")
+            return JsonResponse({'status': 'error', 'message': 'Invalid simulation path specified.'}, status=400)
+
+        # --- Perform Deletion ---
+        if os.path.isdir(folder_to_delete):
+            try:
+                shutil.rmtree(folder_to_delete)
+                logger.info(f"Successfully deleted {sim_type} simulation folder: {folder_to_delete}")
+                return JsonResponse({'status': 'success', 'message': f"Successfully deleted '{sim_code}' ({sim_type})."})
+            except OSError as e:
+                logger.error(f"Error deleting folder {folder_to_delete}: {e}", exc_info=True)
+                return JsonResponse({'status': 'error', 'message': f"Error deleting folder: {e}"}, status=500)
+            except Exception as e:
+                 logger.error(f"Unexpected error during deletion of {folder_to_delete}: {e}", exc_info=True)
+                 return JsonResponse({'status': 'error', 'message': 'An unexpected error occurred during deletion.'}, status=500)
+        else:
+            logger.warning(f"Attempted to delete non-existent folder: {folder_to_delete}")
+            return JsonResponse({'status': 'error', 'message': f"Folder '{sim_code}' ({sim_type}) not found."}, status=404)
+
+    except json.JSONDecodeError:
+        logger.error("Invalid JSON received in delete_simulation_view.")
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON in request body.'}, status=400)
+    except Exception as e:
+        logger.error(f"Generic error in delete_simulation_view: {e}", exc_info=True)
         return JsonResponse({'status': 'error', 'message': 'An internal server error occurred.'}, status=500)
