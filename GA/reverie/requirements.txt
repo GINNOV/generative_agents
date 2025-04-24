@@ -1,3 +1,6 @@
+# Backend requirements
+#
+
 # --- Asynchronous Networking ---
 aiohttp==3.8.3          # Asynchronous HTTP Client/Server framework (often used with asyncio)
 aiosignal==1.3.1        # Library for managing signals in asyncio applications (dependency of aiohttp)
@@ -11,8 +14,7 @@ yarl==1.8.2             # Yet Another URL library (dependency of aiohttp)
 gunicorn==20.1.0        # WSGI HTTP Server for UNIX (commonly used to deploy Django apps)
 
 # --- Django Framework & Related ---
-Django==2.2             # The web framework itself
-# WARNING: Django 2.2 is very old and unsupported - at some point needs upgrade to 4.x or 5.x
+Django>=5.0,<6.0        # The web framework itself
 asgiref==3.5.2          # ASGI specification compatibility library (used by Django for async features)
 dj-database-url==0.5.0  # Utility to configure Django database from a URL string (e.g., in environment variables)
 django-cors-headers==2.5.3 # Handles Cross-Origin Resource Sharing (CORS) headers for Django
